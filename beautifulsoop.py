@@ -75,8 +75,19 @@ def export_selected():
     if not selected_items:
         messagebox.showwarning('No Selection', 'Please select at least one profile to export.')
         return
-    selected_profiles = [profiles_data[int(item)-1] for item in selected_items]
-    export_to_csv(selected_profiles)
+    selected_profiles = []
+    for item in selected_items:
+        profile_id = item[1:]  # Remove the "I" prefix
+        try:
+            index = int(profile_id) - 1
+            if 0 <= index < len(profiles_data):
+                selected_profiles.append(profiles_data[index])
+            else:
+                print(f"Index {index} out of range. Skipping.")
+        except ValueError:
+            print(f"Cannot convert {profile_id} to integer. Skipping.")
+    if selected_profiles:
+        export_to_csv(selected_profiles)
 
 # Function to export all profiles to CSV file
 def export_all():
@@ -86,9 +97,19 @@ def export_all():
 def copy_selected():
     selected_items = tree.selection()
     if not selected_items:
-        messagebox.showwarning('No Selection', 'Please select at least one profile to copy.')
+        messagebox.showwarning('No Selection', 'Please select at least one profile to export.')
         return
-    selected_profiles = [profiles_data[int(item)-1] for item in selected_items]
+    selected_profiles = []
+    for item in selected_items:
+        profile_id = item[1:]  # Remove the "I" prefix
+        try:
+            index = int(profile_id) - 1
+            if 0 <= index < len(profiles_data):
+                selected_profiles.append(profiles_data[index])
+            else:
+                print(f"Index {index} out of range. Skipping.")
+        except ValueError:
+            print(f"Cannot convert {profile_id} to integer. Skipping.")
     pyperclip.copy(str(selected_profiles))
     messagebox.showinfo('Copy Successful', 'Selected profiles copied to clipboard!')
 
