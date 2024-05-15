@@ -40,7 +40,7 @@ def scrape_profile_page(driver, profile_url):
 
 # Function to export data to CSV file with a unique name
 def export_to_csv(data):
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")
     filename = f"profiles_{timestamp}.csv"
     df = pd.DataFrame(data)
     df.to_csv(filename, index=False)
