@@ -1,4 +1,3 @@
-import time
 import re
 import pandas as pd
 import tkinter as tk
@@ -6,6 +5,7 @@ from tkinter import ttk
 from tkinter import messagebox
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -57,15 +57,25 @@ def export_selected():
     if not selected_items:
         messagebox.showwarning('No Selection', 'Please select at least one profile to export.')
         return
-    selected_profiles = [profiles_data[int(item)-1] for item in selected_items]
+    selected_profiles = []
+    for item in selected_items:
+        try:
+            selected_profiles.append(profiles_data[int(item)-1])
+        except ValueError:
+            print(f"Cannot convert {item} to integer. Skipping.")
     export_to_csv(selected_profiles, 'selected_profiles.csv')
 
 # Function to export all profiles to CSV file
 def export_all():
+    for profile in profiles_data:
+        profile.update(scrape_profile_page(driver, profile['Profile Link']))  # Update with email and phone
     export_to_csv(profiles_data, 'all_profiles.csv')
 
 # Initialize Selenium WebDriver
-driver = webdriver.Firefox()
+options = Options()
+options.headless = True
+options.add_argument("--headless")  # Add this line to run the browser in headless mode
+driver = webdriver.Firefox(options=options)
 
 # Initialize tkinter GUI
 root = tk.Tk()
