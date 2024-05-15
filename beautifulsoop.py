@@ -1,48 +1,41 @@
-import requests
+import time
+from selenium import webdriver
 from bs4 import BeautifulSoup
-import re
 import tkinter as tk
 from tkinter import ttk
 import pandas as pd
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 
-# Function to scrape main page and extract profile links
-def scrape_main_page(main_page_url):
-    response = requests.get(main_page_url)
-    print("Main Page Status Code:", response.status_code)  # Print status code for debugging
-    soup = BeautifulSoup(response.content, 'html.parser')
-    
+# Function to scrape profile links using Selenium
+def scrape_profile_links(main_page_url):
+    print("Fetching main page:", main_page_url)
+    driver = webdriver.Firefox()
+    driver.get(main_page_url)
+
+    # Wait for elements to be loaded (adjust timeout as needed)
+    print("Waiting for elements to be loaded...")
+    wait = WebDriverWait(driver, 20)
+    try:
+        elements = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, '.m-profileImage')))
+    except TimeoutException:
+        print("Timeout occurred while waiting for elements to load.")
+        return []
+
+    print("Main page loaded successfully")
+
+    # Find profile links
     profile_links = []
-    profiles = soup.find_all('a', class_='o-employeeList__item')
-    print("Number of Profile Links Found:", len(profiles))  # Print number of profile links found for debugging
-    for profile in profiles:
-        profile_links.append(profile['href'])
-    
+    for element in elements:
+        profile_links.append(element.get_attribute('href'))
+
+    driver.quit()
+    print("WebDriver closed")
+    print("Number of profile links found:", len(profile_links))
     return profile_links
 
-# Function to scrape profile page and extract information
-def scrape_profile(profile_url):
-    response = requests.get(profile_url)
-    print("Profile Page Status Code:", response.status_code)  # Print status code for debugging
-    soup = BeautifulSoup(response.content, 'html.parser')
-    
-    # Extract name
-    name_elem = soup.find('h1', class_='o-employeeIntro__name')
-    name = name_elem.text.strip() if name_elem else ''
-    
-    # Extract job title
-    job_title_elem = soup.find('div', class_='o-employeeIntro__jobDescription')
-    job_title = job_title_elem.text.strip() if job_title_elem else ''
-    
-    # Extract email
-    email_link = soup.find('a', class_='a-mailto')
-    email = re.search(r'mailto:(.*)', email_link['href']).group(1) if email_link else ''
-    
-    # Extract phone number (if available)
-    phone_number_elem = soup.find('div', class_='o-employeeIntro__contactbox')
-    phone_number = phone_number_elem.text.strip() if phone_number_elem else ''
-    
-    # Return the scraped data
-    return {'Name': name, 'Job Title': job_title, 'Email': email, 'Phone Number': phone_number}
 
 # Create Tkinter GUI
 root = tk.Tk()
@@ -50,19 +43,22 @@ root.title("Scraped Data")
 
 # Function to update GUI with scraped data
 def update_gui():
+    print("Updating GUI...")
     scraped_data = []
-    profile_urls = scrape_main_page('https://www.epunkt.com/team')
+    profile_urls = scrape_profile_links('https://www.epunkt.com/team')
+    print("Profile URLs:", profile_urls)
     for profile_url in profile_urls:
         profile_data = scrape_profile(profile_url)
         scraped_data.append(profile_data)
-    
+
     # Convert scraped data to DataFrame
     df = pd.DataFrame(scraped_data)
-    
+
     # Display DataFrame in Treeview
     tree.delete(*tree.get_children())  # Clear existing data in Treeview
     for index, row in df.iterrows():
         tree.insert('', 'end', values=(row['Name'], row['Job Title'], row['Email'], row['Phone Number']))
+    print("GUI updated successfully")
 
 # Create Treeview to display scraped data
 columns = ('Name', 'Job Title', 'Email', 'Phone Number')
