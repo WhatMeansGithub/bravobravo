@@ -14,9 +14,9 @@ import datetime
 # Function to scrape data from the main page
 def scrape_main_page(driver, page_url):
     driver.get(page_url)
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.m-profileImage')))
-    profiles = driver.find_elements(By.CSS_SELECTOR, '.m-profileImage')
-    data = []
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.m-profileImage')))  # This tells the webdriver to wait 10 seconds until the css element ".m-profileimage" is loaded
+    profiles = driver.find_elements(By.CSS_SELECTOR, '.m-profileImage')                                    # This allows us to access and manipulate the selected elements later     
+    data = []                                                                                              # Creates an empty list for data 
     for profile in profiles:
         name = profile.find_element(By.CLASS_NAME, 'm-profileImage__name').text.strip()
         job_title = profile.find_element(By.CLASS_NAME, 'm-profileImage__jobDescription').text.strip()
@@ -30,8 +30,8 @@ def scrape_profile_page(driver, profile_url):
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'a-mailto')))
     email_elem = driver.find_element(By.CLASS_NAME, 'a-mailto')
     email = email_elem.get_attribute('href')
-    if email.startswith("mailto:"):
-        email = email.split(":")[1]
+    if email.startswith("mailto:"):                                                             # Checks whether the email variable starts with "mailto"
+        email = email.split(":")[1]                                                             # Splits the string each time it encounters a ":", the "[1]" refers to the second item in the list       
     else:
         email = email_elem.text.strip()
     phone_elem = driver.find_element(By.XPATH, "//a[starts-with(@href, 'tel:')]")
