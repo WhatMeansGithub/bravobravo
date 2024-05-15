@@ -1,67 +1,78 @@
 import time
-from selenium import webdriver
-from bs4 import BeautifulSoup
+import re
+import pandas as pd
 import tkinter as tk
 from tkinter import ttk
-import pandas as pd
+from tkinter import messagebox
+from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
 
-# Function to scrape profile links using Selenium
-def scrape_profile_links(main_page_url):
-    print("Fetching main page:", main_page_url)
-    driver = webdriver.Firefox()
-    driver.get(main_page_url)
+# Function to scrape data from the main page
+def scrape_main_page(driver, page_url):
+    driver.get(page_url)
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.m-profileImage')))
+    profiles = driver.find_elements(By.CSS_SELECTOR, '.m-profileImage')
+    data = []
+    for profile in profiles:
+        name = profile.find_element(By.CLASS_NAME, 'm-profileImage__name').text.strip()
+        job_title = profile.find_element(By.CLASS_NAME, 'm-profileImage__jobDescription').text.strip()
+        profile_link = profile.get_attribute('href')
+        data.append({'Name': name, 'Job Title': job_title, 'Profile Link': profile_link})
+    return data
 
-    # Wait for elements to be loaded (adjust timeout as needed)
-    print("Waiting for elements to be loaded...")
-    wait = WebDriverWait(driver, 20)
-    try:
-        elements = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, '.m-profileImage')))
-    except TimeoutException:
-        print("Timeout occurred while waiting for elements to load.")
-        return []
+# Function to scrape data from a profile page
+def scrape_profile_page(driver, profile_url):
+    driver.get(profile_url)
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'a-mailto')))
+    email = driver.find_element(By.CLASS_NAME, 'a-mailto').text.strip()
+    phone = re.search(r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b', driver.page_source).group(0)
+    return {'Email': email, 'Phone Number': phone}
 
-    print("Main page loaded successfully")
+# Function to export data to CSV file
+def export_to_csv(data, filename):
+    df = pd.DataFrame(data)
+    df.to_csv(filename, index=False)
+    messagebox.showinfo('Export Successful', f'Data exported to {filename}!')
 
-    # Find profile links
-    profile_links = []
-    for element in elements:
-        profile_links.append(element.get_attribute('href'))
-
-    driver.quit()
-    print("WebDriver closed")
-    print("Number of profile links found:", len(profile_links))
-    return profile_links
-
-
-# Create Tkinter GUI
-root = tk.Tk()
-root.title("Scraped Data")
-
-# Function to update GUI with scraped data
+# Function to update the GUI with scraped data
 def update_gui():
-    print("Updating GUI...")
-    scraped_data = []
-    profile_urls = scrape_profile_links('https://www.epunkt.com/team')
-    print("Profile URLs:", profile_urls)
-    for profile_url in profile_urls:
-        profile_data = scrape_profile(profile_url)
-        scraped_data.append(profile_data)
+    global profiles_data
+    profiles_data = []
+    for page_num in range(1, 12):  # Assuming 11 pages in total
+        page_url = f"https://www.epunkt.com/team/p{page_num}"
+        profiles_data += scrape_main_page(driver, page_url)
+    update_treeview()
 
-    # Convert scraped data to DataFrame
-    df = pd.DataFrame(scraped_data)
+# Function to update the Treeview with scraped data
+def update_treeview():
+    tree.delete(*tree.get_children())
+    for profile in profiles_data:
+        tree.insert('', 'end', values=(profile['Name'], profile['Job Title'], profile['Profile Link']))
 
-    # Display DataFrame in Treeview
-    tree.delete(*tree.get_children())  # Clear existing data in Treeview
-    for index, row in df.iterrows():
-        tree.insert('', 'end', values=(row['Name'], row['Job Title'], row['Email'], row['Phone Number']))
-    print("GUI updated successfully")
+# Function to export selected profiles to CSV file
+def export_selected():
+    selected_items = tree.selection()
+    if not selected_items:
+        messagebox.showwarning('No Selection', 'Please select at least one profile to export.')
+        return
+    selected_profiles = [profiles_data[int(item)-1] for item in selected_items]
+    export_to_csv(selected_profiles, 'selected_profiles.csv')
+
+# Function to export all profiles to CSV file
+def export_all():
+    export_to_csv(profiles_data, 'all_profiles.csv')
+
+# Initialize Selenium WebDriver
+driver = webdriver.Firefox()
+
+# Initialize tkinter GUI
+root = tk.Tk()
+root.title("Scraped Profiles")
 
 # Create Treeview to display scraped data
-columns = ('Name', 'Job Title', 'Email', 'Phone Number')
+columns = ('Name', 'Job Title', 'Profile Link')
 tree = ttk.Treeview(root, columns=columns, show='headings')
 for col in columns:
     tree.heading(col, text=col)
@@ -71,16 +82,16 @@ tree.pack(fill='both', expand=True)
 update_button = tk.Button(root, text="Update Data", command=update_gui)
 update_button.pack()
 
-# Button to copy selected data
-def copy_selected():
-    selected_item = tree.selection()
-    if selected_item:
-        selected_values = tree.item(selected_item)['values']
-        root.clipboard_clear()
-        root.clipboard_append(selected_values)
+# Button to export selected data
+export_selected_button = tk.Button(root, text="Export Selected", command=export_selected)
+export_selected_button.pack()
 
-copy_button = tk.Button(root, text="Copy Selected", command=copy_selected)
-copy_button.pack()
+# Button to export all data
+export_all_button = tk.Button(root, text="Export All", command=export_all)
+export_all_button.pack()
 
 # Run the GUI
 root.mainloop()
+
+# Quit Selenium WebDriver
+driver.quit()
