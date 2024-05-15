@@ -8,6 +8,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import pyperclip
+import datetime
 
 # Function to scrape data from the main page
 def scrape_main_page(driver, page_url):
@@ -26,30 +28,46 @@ def scrape_main_page(driver, page_url):
 def scrape_profile_page(driver, profile_url):
     driver.get(profile_url)
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'a-mailto')))
-    email = driver.find_element(By.CLASS_NAME, 'a-mailto').text.strip()
-    phone = re.search(r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b', driver.page_source).group(0)
+    email_elem = driver.find_element(By.CLASS_NAME, 'a-mailto')
+    email = email_elem.get_attribute('href')
+    if email.startswith("mailto:"):
+        email = email.split(":")[1]
+    else:
+        email = email_elem.text.strip()
+    phone_elem = driver.find_element(By.XPATH, "//a[starts-with(@href, 'tel:')]")
+    phone = phone_elem.get_attribute('href').split(":")[1]
     return {'Email': email, 'Phone Number': phone}
 
-# Function to export data to CSV file
-def export_to_csv(data, filename):
+# Function to export data to CSV file with a unique name
+def export_to_csv(data):
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"profiles_{timestamp}.csv"
     df = pd.DataFrame(data)
     df.to_csv(filename, index=False)
     messagebox.showinfo('Export Successful', f'Data exported to {filename}!')
 
 # Function to update the GUI with scraped data
-def update_gui():
+def update_gui(page_num=None):
     global profiles_data
     profiles_data = []
-    for page_num in range(1, 12):  # Assuming 11 pages in total
-        page_url = f"https://www.epunkt.com/team/p{page_num}"
-        profiles_data += scrape_main_page(driver, page_url)
+    if page_num is None:
+        page_num = page_number_entry.get()
+    try:
+        page_num = int(page_num)
+    except ValueError:
+        messagebox.showwarning('Invalid Input', 'Please enter a valid page number.')
+        return
+    page_url = f"https://www.epunkt.com/team/p{page_num}"
+    profiles_data += scrape_main_page(driver, page_url)
+    for profile in profiles_data:
+        profile.update(scrape_profile_page(driver, profile['Profile Link']))  # Update with email and phone
     update_treeview()
 
 # Function to update the Treeview with scraped data
 def update_treeview():
     tree.delete(*tree.get_children())
     for profile in profiles_data:
-        tree.insert('', 'end', values=(profile['Name'], profile['Job Title'], profile['Profile Link']))
+        tree.insert('', 'end', values=(profile['Name'], profile['Job Title'], profile['Profile Link'], profile['Email'], profile['Phone Number']))
 
 # Function to export selected profiles to CSV file
 def export_selected():
@@ -57,19 +75,27 @@ def export_selected():
     if not selected_items:
         messagebox.showwarning('No Selection', 'Please select at least one profile to export.')
         return
-    selected_profiles = []
-    for item in selected_items:
-        try:
-            selected_profiles.append(profiles_data[int(item)-1])
-        except ValueError:
-            print(f"Cannot convert {item} to integer. Skipping.")
-    export_to_csv(selected_profiles, 'selected_profiles.csv')
+    selected_profiles = [profiles_data[int(item)-1] for item in selected_items]
+    export_to_csv(selected_profiles)
 
 # Function to export all profiles to CSV file
 def export_all():
-    for profile in profiles_data:
-        profile.update(scrape_profile_page(driver, profile['Profile Link']))  # Update with email and phone
-    export_to_csv(profiles_data, 'all_profiles.csv')
+    export_to_csv(profiles_data)
+
+# Function to copy selected profiles to clipboard
+def copy_selected():
+    selected_items = tree.selection()
+    if not selected_items:
+        messagebox.showwarning('No Selection', 'Please select at least one profile to copy.')
+        return
+    selected_profiles = [profiles_data[int(item)-1] for item in selected_items]
+    pyperclip.copy(str(selected_profiles))
+    messagebox.showinfo('Copy Successful', 'Selected profiles copied to clipboard!')
+
+# Function to copy all profiles to clipboard
+def copy_all():
+    pyperclip.copy(str(profiles_data))
+    messagebox.showinfo('Copy Successful', 'All profiles copied to clipboard!')
 
 # Initialize Selenium WebDriver
 options = Options()
@@ -81,15 +107,21 @@ driver = webdriver.Firefox(options=options)
 root = tk.Tk()
 root.title("Scraped Profiles")
 
+# Label and Entry for page number input
+page_number_label = tk.Label(root, text="Page Number:")
+page_number_label.pack()
+page_number_entry = tk.Entry(root)
+page_number_entry.pack()
+
 # Create Treeview to display scraped data
-columns = ('Name', 'Job Title', 'Profile Link')
+columns = ('Name', 'Job Title', 'Profile Link', 'Email', 'Phone Number')
 tree = ttk.Treeview(root, columns=columns, show='headings')
 for col in columns:
     tree.heading(col, text=col)
 tree.pack(fill='both', expand=True)
 
 # Button to update and display scraped data
-update_button = tk.Button(root, text="Update Data", command=update_gui)
+update_button = tk.Button(root, text="Update Data", command=lambda: update_gui(page_number_entry.get()))
 update_button.pack()
 
 # Button to export selected data
@@ -99,6 +131,14 @@ export_selected_button.pack()
 # Button to export all data
 export_all_button = tk.Button(root, text="Export All", command=export_all)
 export_all_button.pack()
+
+# Button to copy selected data
+copy_selected_button = tk.Button(root, text="Copy Selected", command=copy_selected)
+copy_selected_button.pack()
+
+# Button to copy all data
+copy_all_button = tk.Button(root, text="Copy All", command=copy_all)
+copy_all_button.pack()
 
 # Run the GUI
 root.mainloop()
