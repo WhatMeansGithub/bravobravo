@@ -1,0 +1,6 @@
+customtkinter==5.2.2
+mutagen==1.47.0
+pandas==2.2.2
+pygame==2.5.2
+pyperclip==1.8.2
+selenium==4.20.0
