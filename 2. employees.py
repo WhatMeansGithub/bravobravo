@@ -10,6 +10,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pyperclip
 import datetime
+import concurrent.futures
 
 # Function to scrape data from the main page
 def scrape_main_page(driver, page_url):
@@ -65,7 +66,6 @@ def update_gui(page_num=None):
         profiles_data += scrape_main_page(driver, page_url)
         for profile in profiles_data:
             profile.update(scrape_profile_page(driver, profile['Profile Link']))  # Update with email and phone
-    
     print("Data fetching complete")
     update_treeview()
 
