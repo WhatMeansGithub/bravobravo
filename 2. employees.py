@@ -149,7 +149,7 @@ for col in columns:
 tree.pack(fill='both', expand=True)
 
 # Button to update and display scraped data
-update_button = tk.Button(root, text="Update Data", command=lambda: update_gui(page_number_entry.get()))
+update_button = tk.Button(root, text="Gimme the Juice", command=lambda: update_gui(page_number_entry.get()))
 update_button.pack()
 
 # Button to export selected data
