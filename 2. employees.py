@@ -52,7 +52,7 @@ def update_gui(page_num=None):
     global profiles_data
     profiles_data = []
     if page_num is None or page_num.strip() == "":
-        page_numbers = range(1, 12)  # Assuming 11 pages in total
+        page_numbers = range(1, 12)  # Gets pages 1-11 from the website if there's no input for page numbers
     else:
         try:
             page_numbers = [int(page_num)]
