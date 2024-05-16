@@ -50,18 +50,25 @@ def export_to_csv(data):
 def update_gui(page_num=None):
     global profiles_data
     profiles_data = []
-    if page_num is None:
-        page_num = page_number_entry.get()
-    try:
-        page_num = int(page_num)
-    except ValueError:
-        messagebox.showwarning('Invalid Input', 'Please enter a valid page number.')
-        return
-    page_url = f"https://www.epunkt.com/team/p{page_num}"
-    profiles_data += scrape_main_page(driver, page_url)
-    for profile in profiles_data:
-        profile.update(scrape_profile_page(driver, profile['Profile Link']))  # Update with email and phone
+    if page_num is None or page_num.strip() == "":
+        page_numbers = range(1, 12)  # Assuming 11 pages in total
+    else:
+        try:
+            page_numbers = [int(page_num)]
+        except ValueError:
+            messagebox.showwarning('Invalid Input', 'Please enter a valid page number.')
+            return
+    
+    for num in page_numbers:
+        print(f"Fetching data from page {num}")                                   # print statement to check if the program hangs fetching a certain page
+        page_url = f"https://www.epunkt.com/team/p{num}"
+        profiles_data += scrape_main_page(driver, page_url)
+        for profile in profiles_data:
+            profile.update(scrape_profile_page(driver, profile['Profile Link']))  # Update with email and phone
+    
+    print("Data fetching complete")
     update_treeview()
+
 
 # Function to update the Treeview with scraped data
 def update_treeview():
@@ -142,7 +149,7 @@ for col in columns:
 tree.pack(fill='both', expand=True)
 
 # Button to update and display scraped data
-update_button = tk.Button(root, text="Update Data", command=lambda: update_gui(page_number_entry.get()))
+update_button = tk.Button(root, text="Gimme the Juice", command=lambda: update_gui(page_number_entry.get()))
 update_button.pack()
 
 # Button to export selected data
