@@ -5,7 +5,7 @@ from tkinter import ttk
 from tkinter import messagebox
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pyperclip
@@ -129,7 +129,7 @@ def copy_all():
 options = Options()
 options.headless = True
 options.add_argument("--headless")  # Add this line to run the browser in headless mode
-driver = webdriver.Firefox(options=options)
+driver = webdriver.Chrome(options=options)
 
 # Initialize tkinter GUI
 root = tk.Tk()
