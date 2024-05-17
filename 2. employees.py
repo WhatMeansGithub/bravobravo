@@ -11,33 +11,103 @@ from selenium.webdriver.support import expected_conditions as EC
 import pyperclip
 import datetime
 import concurrent.futures
+import smtplib
+import dns.resolver
 
+# Function to initialize Selenium WebDriver
+def initialize_driver():
+    options = Options()
+    options.headless = True
+    options.add_argument("--headless")
+    driver = webdriver.Chrome(options=options)
+    return driver
+"""
+def verify_email_smtp(email):
+    try:
+        if '@' not in email:
+            print(f"Invalid email format: {email}")
+            return False
+        
+        domain = email.split('@')[1]
+        mx_records = dns.resolver.resolve(domain, 'MX')
+        
+        if not mx_records:
+            print(f"No MX records found for domain: {domain}")
+            return False
+        
+        mx_record = str(mx_records[0].exchange)
+        
+        # Use Gmail SMTP server for checking
+        smtp_server = 'smtp.gmail.com'
+        smtp_port = 587
+        smtp_user = 'your_gmail_username@gmail.com'
+        smtp_password = 'your_gmail_password'
+        
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()
+        server.login(smtp_user, smtp_password)
+        server.mail(smtp_user)
+        code, message = server.rcpt(email)
+        server.quit()
+        
+        if code == 250:
+            return True
+        else:
+            print(f"SMTP server responded with code: {code}, message: {message}")
+            return False
+    except (dns.resolver.NoAnswer, dns.resolver.NXDOMAIN):
+        print(f"DNS resolution error for domain: {domain}")
+        return False
+    except (smtplib.SMTPServerDisconnected, smtplib.SMTPConnectError, smtplib.SMTPHeloError) as e:
+        print(f"SMTP connection error: {e}")
+        return False
+    except Exception as e:
+        print(f"Unexpected error during SMTP verification: {e}")
+        return False
+
+# Testing the function
+email = "example@example.com"
+is_valid = verify_email_smtp(email)
+print(f"Email {email} validation result: {is_valid}")"""
+    
 # Function to scrape data from the main page
-def scrape_main_page(driver, page_url):
+def scrape_main_page(page_url):
+    driver = initialize_driver()
     driver.get(page_url)
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.m-profileImage')))  # This tells the webdriver to wait 10 seconds until the css element ".m-profileimage" is loaded
-    profiles = driver.find_elements(By.CSS_SELECTOR, '.m-profileImage')                                    # This allows us to access and manipulate the selected elements later     
-    data = []                                                                                              # Creates an empty list for data 
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.m-profileImage')))
+    profiles = driver.find_elements(By.CSS_SELECTOR, '.m-profileImage')
+    data = []
     for profile in profiles:
         name = profile.find_element(By.CLASS_NAME, 'm-profileImage__name').text.strip()
         job_title = profile.find_element(By.CLASS_NAME, 'm-profileImage__jobDescription').text.strip()
         profile_link = profile.get_attribute('href')
         data.append({'Name': name, 'Job Title': job_title, 'Profile Link': profile_link})
+    driver.quit()
     return data
 
 # Function to scrape data from a profile page
-def scrape_profile_page(driver, profile_url):
+def scrape_profile_page(profile):
+    driver = initialize_driver()
+    profile_url = profile['Profile Link']
     driver.get(profile_url)
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'a-mailto')))
     email_elem = driver.find_element(By.CLASS_NAME, 'a-mailto')
     email = email_elem.get_attribute('href')
-    if email.startswith("mailto:"):                                                             # Checks whether the email variable starts with "mailto"
-        email = email.split(":")[1]                                                             # Splits the string each time it encounters a ":", the "[1]" refers to the second item in the list       
+    if email.startswith("mailto:"):
+        email = email.split(":")[1]
     else:
         email = email_elem.text.strip()
+    """
+          # SMTP validation
+    if not verify_email_smtp(email):
+        email = 'Email does not exist'"""
+
     phone_elem = driver.find_element(By.XPATH, "//a[starts-with(@href, 'tel:')]")
     phone = phone_elem.get_attribute('href').split(":")[1]
-    return {'Email': email, 'Phone Number': phone}
+    driver.quit()
+    profile.update({'Email': email, 'Phone Number': phone})
+    return profile
+    
 
 # Function to export data to CSV file with a unique name
 def export_to_csv(data):
@@ -52,7 +122,7 @@ def update_gui(page_num=None):
     global profiles_data
     profiles_data = []
     if page_num is None or page_num.strip() == "":
-        page_numbers = range(1, 12)  # Gets pages 1-11 from the website if there's no input for page numbers
+        page_numbers = range(1, 12)
     else:
         try:
             page_numbers = [int(page_num)]
@@ -60,15 +130,16 @@ def update_gui(page_num=None):
             messagebox.showwarning('Invalid Input', 'Please enter a valid page number.')
             return
     
-    for num in page_numbers:
-        print(f"Fetching data from page {num}")                                   # print statement to check if the program hangs fetching a certain page
-        page_url = f"https://www.epunkt.com/team/p{num}"
-        profiles_data += scrape_main_page(driver, page_url)
-        for profile in profiles_data:
-            profile.update(scrape_profile_page(driver, profile['Profile Link']))  # Update with email and phone
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        main_page_futures = [executor.submit(scrape_main_page, f"https://www.epunkt.com/team/p{num}") for num in page_numbers]
+        for future in concurrent.futures.as_completed(main_page_futures):
+            profiles_data.extend(future.result())
+
+        profile_page_futures = [executor.submit(scrape_profile_page, profile) for profile in profiles_data]
+        profiles_data = [future.result() for future in concurrent.futures.as_completed(profile_page_futures) if future.result() is not None]
+
     print("Data fetching complete")
     update_treeview()
-
 
 # Function to update the Treeview with scraped data
 def update_treeview():
@@ -125,12 +196,6 @@ def copy_all():
     pyperclip.copy(str(profiles_data))
     messagebox.showinfo('Copy Successful', 'All profiles copied to clipboard!')
 
-# Initialize Selenium WebDriver
-options = Options()
-options.headless = True
-options.add_argument("--headless")  # Add this line to run the browser in headless mode
-driver = webdriver.Chrome(options=options)
-
 # Initialize tkinter GUI
 root = tk.Tk()
 root.title("Scraped Profiles")
@@ -170,6 +235,3 @@ copy_all_button.pack()
 
 # Run the GUI
 root.mainloop()
-
-# Quit Selenium WebDriver
-driver.quit()
