@@ -1,57 +1,54 @@
 from bs4 import BeautifulSoup  # Importing BeautifulSoup to parse HTML content
 import requests                # Importing requests to get HTML content from a website
-import os
 import pandas as pd            # Importing pandas for data manipulation and file saving
+import os                      # Importing os to clear the terminal
 
-# Function to clear the terminal
-clear = lambda: os.system('clear')
-clear()  # Clear terminal output
+# FUNCTIONS ============================================================================================================
 
-# URL of the website to scrape
-url1 = 'https://www.investing.com/'
-page1 = requests.get(url1)  # Requesting the HTML content of the website
-soup1 = BeautifulSoup(page1.text, 'html.parser')  # Parsing the HTML content
+clear = lambda: os.system('clear') # Function to clear the terminal
+clear()                            # Clear terminal output
 
-# Finding all relevant tables with specific classes
-all_variables = soup1.find_all('table', class_="datatable-v2_table__93S4Y dynamic-table-v2_dynamic-table__iz42m datatable-v2_table--mobile-basic__uC0U0 datatable-v2_table--freeze-column__uGXoD datatable-v2_table--freeze-column-first__zMZNN undefined")
+def create_dataframe(headers, rows):         # Function that converts data into a DataFrame similar to a table
+    df = pd.DataFrame(rows, columns=headers) # Creating a DataFrame with rows and columns
+    return df                                # Returning the DataFrame
 
-# Extracting text from each table and stripping whitespace
-all_variables = [table.text.strip() for table in all_variables]
+def menu():                                  # Function that displays the menu options
+    print("1. Indices" , "2. Stocks" , "3. Commodities" , "4. Currencies" , "5. EFTs" , "\n" , "6. Bonds" , "7. Funds" , "8. Cryptocurrencies" , "9. Exit")
+    choice = input("Enter your choice: ")    # Asking the user to enter a choice
 
-# Splitting the extracted text into lines and columns
-data = []
-for table in all_variables:
-    lines = table.split('\n')
-    headers = lines[0].split()  # Assuming the first line contains headers
-    rows = [line.split() for line in lines[1:]]
-    data.append((headers, rows))
+def process_table(table):                                           # Function that processes the table
+    if table:                                                       # If the table exists                         
+        headers = [header.text for header in table.find_all('th')]  # Extracting header's text/titles from the table 
+        rows = []                                                   # Creating an empty list to store rows
+        for row in table.find_all('tr')[1:]:                        # Looping through each row in the table (excluding the header row)
+            columns = row.find_all('td')                            # Extracting columns from the row
+            rows.append([col.text.strip() for col in columns])      # Appending each column to the rows list
+        df = pd.DataFrame(rows, columns=headers)                    # Creating a DataFrame from the headers and rows
+        df.index = df.index + 1                                     # Incrementing the index by 1 so it starts from 1 not 0
+        print(df)                                                   # Displaying the DataFrame (table basically)
+    else:
+        print("No table found with the specified class.")           # If the table does not exist, print this message (it was useful to check for errors)
 
-# Function to convert data into a DataFrame
-def create_dataframe(headers, rows):
-    df = pd.DataFrame(rows, columns=headers)
-    return df
+# MAIN CODE ============================================================================================================
 
-# Creating a DataFrame for each table and saving it to a file
-for i, (headers, rows) in enumerate(data):
-    df = create_dataframe(headers, rows)
-    filename = f'table_{i+1}.csv'  # Create a filename for each table
-    df.to_csv(filename, index=False)  # Save the DataFrame to a CSV file
+url1 = 'https://www.investing.com/indices/major-indices'    # URL of the website to scrape
+page1 = requests.get(url1)                                  # Requesting the HTML content of the website
+soup1 = BeautifulSoup(page1.text, 'html.parser')            # Parsing the HTML content # Extracting text from each table and stripping whitespace
+all_variables1 = soup1.find_all('table' , class_="datatable-v2_table__93S4Y dynamic-table-v2_dynamic-table__iz42m datatable-v2_table--mobile-basic__uC0U0 datatable-v2_table--freeze-column__uGXoD undefined")
+all_variables1 = [table.text.strip() for table in all_variables1] # Extracting text from each table and stripping whitespace
 
-# Finding the first relevant table with specific classes
-first_table = soup1.find('table', class_="datatable-v2_table__93S4Y dynamic-table-v2_dynamic-table__iz42m datatable-v2_table--mobile-basic__uC0U0 datatable-v2_table--freeze-column__uGXoD datatable-v2_table--freeze-column-first__zMZNN undefined")
+special_table = soup1.find('table' , class_="datatable-v2_table__93S4Y dynamic-table-v2_dynamic-table__iz42m datatable-v2_table--mobile-basic__uC0U0 datatable-v2_table--freeze-column__uGXoD undefined")
+process_table(special_table)
 
-# Extracting text from the first table and stripping whitespace
-if first_table:
-    headers = [header.text for header in first_table.find_all('th')]  # Extracting headers
-    rows = []
-    for row in first_table.find_all('tr')[1:]:  # Skipping the header row
-        columns = row.find_all('td')
-        rows.append([col.text.strip() for col in columns])
-    
-    # Creating a DataFrame from the extracted data
-    df = pd.DataFrame(rows, columns=headers)
-    
-    # Printing the DataFrame
-    print(df)
-else:
-    print("No table found with the specified class.")
+data = []                                           # we create a list to store data from the table
+for table in all_variables1:                        # Looping through each table
+    lines = table.split('\n')                       # Splitting the table into lines
+    headers = lines[0].split()                      # Assuming the first line contains headers
+    rows = [line.split() for line in lines[1:]]     # Assuming the rest of the lines contain rows
+    data.append((headers, rows))                    # Appending headers and rows to the data list   
+for i, (headers, rows) in enumerate(data):          # Looping through the data list
+    df = create_dataframe(headers, rows)            # Creating a DataFrame from the headers and rows
+    filename = f'market_table_{i+1}.csv'            # Create a filename for each table
+    df.to_csv(filename, index=False)                # Save the DataFrame to a CSV file
+
+    some_function = lambda argument: 'Hello World'
