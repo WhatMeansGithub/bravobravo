@@ -1,10 +1,9 @@
 from bs4 import BeautifulSoup  # Importing BeautifulSoup to parse HTML content
-# from tkinter import ttk        # Importing ttk to create themed widgets
-import ttkbootstrap as ttkbs   # Importing ttkbootstrap to create themed widgets
+import ttkbootstrap as ttk     # Does the same as 'from tkinter import ttk' but lets us customize the GUI even more with themes
 import tkinter as tk           # Importing tkinter to create a GUI
 import requests                # Importing requests to get HTML content from a website
 import pandas as pd            # Importing pandas for data manipulation and file saving
-import os                      # Importing os to clear the terminal
+import os                      # Importing os to use the clear function from the os
 
 # FUNCTIONS ============================================================================================================
 
@@ -78,22 +77,23 @@ def get_trending_stocks():                                      # Function to ge
 # MAIN CODE ============================================================================================================
 
 # window
-window = tk.Tk()                # Creating a tkinter window
-window.title("Market Shares")   # Setting the title of the window
-window.geometry("1200x1000")      # Setting the size of the window
+window = ttk.Window(themename = 'darkly')               # Creating a tkinter window and customising it
+window.title("Market Shares")                           # Setting the title of the window
+window.geometry("1200x1000")                            # Setting the size of the window
+
 
 # title
-title = ttk.Label(master = window, text="Major Indices", font=("Calibri 30 bold"))   # Creating a label widget
-title.pack()                                                                # Displaying the label widget
+title = ttk.Label(master = window, text="Major Indices", font=("Calibri 30 bold"))              # Creating a label widget
+title.pack()                                                                                    # Displaying the label widget
 
 # input field
-input_frame = ttk.Frame(master = window)                    # Creating a frame widget
-entry = ttk.Entry(master = input_frame)                     # Creating an entry widget
-button = ttk.Button(master = input_frame, text="Get Indices", command = get_major_indices)    # Creating a button widget
-entry_int = ttk.Entry(master = input_frame)                 # Creating an entry widget
-entry.pack(side = 'left', padx = 10)                                  # Displaying the entry widget
-button.pack(side = 'left')                                # Displaying the button widget
-input_frame.pack(pady = 20)                                          # Displaying the frame widget
+input_frame = ttk.Frame(master = window)                                                        # Creating a frame widget
+entry = ttk.Entry(master = input_frame)                                                         # Creating an entry widget
+button = ttk.Button(master = input_frame, text="Get Indices", command = get_major_indices)      # Creating a button widget
+entry_int = ttk.Entry(master = input_frame)                                                     # Creating an entry widget
+entry.pack(side = 'left', padx = 10)                                                            # Displaying the entry widget
+button.pack(side = 'left')                                                                      # Displaying the button widget
+input_frame.pack(pady = 20)                                                                     # Displaying the frame widget
 
 # output field
 output_string = tk.StringVar()                                                                  # Creating a string variable
@@ -102,4 +102,4 @@ output_lable.pack()                                                             
 output_string.set("Data has been saved to CSV files.")                                          # Displaying a message in the GUI
 
 # run
-window.mainloop()               # Running the tkinter window
+window.mainloop()                                                                               # Running the tkinter window
