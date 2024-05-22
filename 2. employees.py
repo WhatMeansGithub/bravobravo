@@ -1,4 +1,5 @@
 import re
+import os
 import pandas as pd
 import tkinter as tk
 from tkinter import ttk
@@ -21,7 +22,7 @@ def initialize_driver():
     options.add_argument("--headless")
     driver = webdriver.Chrome(options=options)
     return driver
-"""
+
 def verify_email_smtp(email):
     try:
         if '@' not in email:
@@ -37,11 +38,16 @@ def verify_email_smtp(email):
         
         mx_record = str(mx_records[0].exchange)
         
+        smtp_user = os.getenv('SMTP_USER')
+        smtp_password = os.getenv('SMTP_PASSWORD')
+
+        if not smtp_user or not smtp_password:
+            print("SMTP credentials are not in environment variables.")
+            return False
+
         # Use Gmail SMTP server for checking
         smtp_server = 'smtp.gmail.com'
         smtp_port = 587
-        smtp_user = 'your_gmail_username@gmail.com'
-        smtp_password = 'your_gmail_password'
         
         server = smtplib.SMTP(smtp_server, smtp_port)
         server.starttls()
@@ -68,7 +74,7 @@ def verify_email_smtp(email):
 # Testing the function
 email = "example@example.com"
 is_valid = verify_email_smtp(email)
-print(f"Email {email} validation result: {is_valid}")"""
+print(f"Email {email} validation result: {is_valid}")
     
 # Function to scrape data from the main page
 def scrape_main_page(page_url):
@@ -97,10 +103,10 @@ def scrape_profile_page(profile):
         email = email.split(":")[1]
     else:
         email = email_elem.text.strip()
-    """
+    
           # SMTP validation
     if not verify_email_smtp(email):
-        email = 'Email does not exist'"""
+        email = 'Email does not exist'
 
     phone_elem = driver.find_element(By.XPATH, "//a[starts-with(@href, 'tel:')]")
     phone = phone_elem.get_attribute('href').split(":")[1]
