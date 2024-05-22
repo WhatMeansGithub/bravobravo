@@ -82,18 +82,19 @@ window.title("Market Shares")                           # Setting the title of t
 window.geometry("1200x1000")                            # Setting the size of the window
 
 
-# title
-title = ttk.Label(master = window, text="Major Indices", font=("Calibri 30 bold"))              # Creating a label widget
-title.pack()                                                                                    # Displaying the label widget
 
-# input field
-input_frame = ttk.Frame(master = window)                                                        # Creating a frame widget
-entry = ttk.Entry(master = input_frame)                                                         # Creating an entry widget
-button = ttk.Button(master = input_frame, text="Get Indices", command = get_major_indices)      # Creating a button widget
-entry_int = ttk.Entry(master = input_frame)                                                     # Creating an entry widget
-entry.pack(side = 'left', padx = 10)                                                            # Displaying the entry widget
-button.pack(side = 'left')                                                                      # Displaying the button widget
-input_frame.pack(pady = 20)                                                                     # Displaying the frame widget
+# Button field
+button_frame = ttk.Frame(master = window)                                                           # Creating a frame widget that holds the button widgets
+button1 = ttk.Button(master = button_frame, text="Major Indices", command = get_major_indices)      # Creating a button widget
+button1.pack(side = 'left' , padx = 10)                                                             # Displaying the button widget and positioning it to the left
+button2 = ttk.Button(master = button_frame, text="Trending Stocks", command = get_trending_stocks)  # Creating a button widget
+button2.pack(side = 'left')                                                                         # Displaying the button widget and positioning it to the left
+
+
+
+
+entry_int = ttk.Entry(master = button_frame)                                                     # Creating an entry widget
+button_frame.pack(pady = 20)                                                                     # Displaying the frame widget
 
 # output field
 output_string = tk.StringVar()                                                                  # Creating a string variable
