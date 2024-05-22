@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup  # Importing BeautifulSoup to parse HTML content
+# from tkinter import ttk        # Importing ttk to create themed widgets
+import ttkbootstrap as ttkbs   # Importing ttkbootstrap to create themed widgets
 import tkinter as tk           # Importing tkinter to create a GUI
-from tkinter import ttk        # Importing ttk to create themed widgets
 import requests                # Importing requests to get HTML content from a website
 import pandas as pd            # Importing pandas for data manipulation and file saving
 import os                      # Importing os to clear the terminal
