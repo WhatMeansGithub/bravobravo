@@ -12,6 +12,8 @@ from selenium.webdriver.support import expected_conditions as EC
 import pyperclip
 import datetime
 import concurrent.futures
+import os                      # Importing os to be able to create a folder to store the exported files / added lines - 15, 47, 48, 50
+
 
 # Function to scrape data from the main page
 def scrape_main_page(driver, page_url):
@@ -42,8 +44,10 @@ def scrape_profile_page(driver, profile_url):
 
 # Function to export data to CSV file with a unique name
 def export_to_csv(data):
+    if not os.path.exists('employees files'):                               # if the folder 'employees files' doesn't exist
+        os.makedirs('employees files')                                      # Create the folder 'employees files'
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")
-    filename = f"profiles_{timestamp}.csv"
+    filename = os.path.join('employees files', f"profiles_{timestamp}.csv") # Save the file in the 'employees files' folder
     df = pd.DataFrame(data)
     df.to_csv(filename, index=False)
     messagebox.showinfo('Export Successful', f'Data exported to {filename}!')

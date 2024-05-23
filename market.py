@@ -3,7 +3,7 @@ import ttkbootstrap as ttk     # Does the same as 'from tkinter import ttk' but 
 import tkinter as tk           # Importing tkinter to create a GUI
 import requests                # Importing requests to get HTML content from a website
 import pandas as pd            # Importing pandas for data manipulation and file saving
-import os                      # Importing os to use the clear function from the os
+import os                      # Importing os to use the clear function from the os and create a folder to store the exported files
 
 # FUNCTIONS ============================================================================================================
 
