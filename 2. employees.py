@@ -246,17 +246,18 @@ page_number_label.pack()
 page_number_entry = tk.Entry(root)
 page_number_entry.pack()
 
-# Create a frame to hold the search entry and button on the left side
-left_frame = tk.Frame(root)
-left_frame.pack(side='left', padx=10, pady=10, fill='y')
+main_frame = tk.Frame(root)
+main_frame.pack(fill='both', expand=True, padx=10, pady=10)
 
+search_frame = tk.Frame(main_frame)
+search_frame.pack(fill='x', pady=5)
 # Search entry
-search_entry = tk.Entry(root)
-search_entry.pack(pady=5, anchor='w')
+search_entry = tk.Entry(search_frame)
+search_entry.pack(side='left', pady=(0, 5))
 
 # Search button
-search_all_button = tk.Button(root, text="Search", command=search)
-search_all_button.pack(pady=5, anchor='w')
+search_button = tk.Button(search_frame, text="Search", command=search)
+search_button.pack(side= 'left')
 
 # Create Treeview to display scraped data
 columns = ('Name', 'Job Title', 'Profile Link', 'Email', 'Phone Number')
