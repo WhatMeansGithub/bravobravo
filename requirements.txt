@@ -7,3 +7,4 @@ selenium==4.20.0
 ttkbootstrap==0.1.0
 geckodriver==0.34.0
 bs4==0.0.1
+PrettyTable==2.2.0
