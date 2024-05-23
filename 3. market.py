@@ -43,50 +43,50 @@ def get_trending_stocks():                                          # Function t
     url = 'https://www.investing.com/equities/trending-stocks'      # URL of the website we will scrape
     page = requests.get(url)                                        # Requesting the HTML content of the website
     soup = BeautifulSoup(page.text, 'html.parser')                  # Parsing the HTML content
-    display_web_tables(soup, 'datatable-v2_table__93S4Y', 'trending_stocks')
+    display_web_tables(soup, 'datatable-v2_table__93S4Y', 'trending_stocks')# Calling the display_web_tables function
 
 def get_commodity_futures():                                        # Function that gets the stocks of commodity futures
     url = 'https://www.investing.com/commodities/real-time-futures' # URL of the website we will scrape
     page = requests.get(url)                                        # Requesting the HTML content of the website
     soup = BeautifulSoup(page.text, 'html.parser')                  # Parsing the HTML content # Extracting text from each table and stripping whitespace
-    display_web_tables(soup, 'datatable-v2_table__93S4Y', 'commodity_futures')
+    display_web_tables(soup, 'datatable-v2_table__93S4Y', 'commodity_futures')# Calling the display_web_tables function
 
 def get_exchange_rates():                                           # Function that gets the exchange rates of different currencies
     url = 'https://www.investing.com/currencies/streaming-forex-rates-majors'# URL of the website we will scrape
     page = requests.get(url)                                        # Requesting the HTML content of the website
     soup = BeautifulSoup(page.text, 'html.parser')                  # Parsing the HTML content # Extracting text from each table and stripping whitespace
-    display_web_tables(soup, 'datatable-v2_table__93S4Y', 'exchange_rates')
+    display_web_tables(soup, 'datatable-v2_table__93S4Y', 'exchange_rates')# Calling the display_web_tables function
 
 def get_etfs():                                                     # Function that gets the stocks of ETFs (Exchange Traded Funds)
     url = 'https://www.investing.com/etfs/major-etfs'               # URL of the website we will scrape
     page = requests.get(url)                                        # Requesting the HTML content of the website
     soup = BeautifulSoup(page.text, 'html.parser')                  # Parsing the HTML content # Extracting text from each table and stripping whitespace
-    display_web_tables(soup, 'genTbl closedTbl crossRatesTbl elpTbl elp40', 'etfs')
+    display_web_tables(soup, 'genTbl closedTbl crossRatesTbl elpTbl elp40', 'etfs')# Calling the display_web_tables function
 
 def get_government_bonds():                                         # Function that gets the stocks of government bonds
     url = 'https://www.investing.com/rates-bonds/world-government-bonds'# URL of the website we will scrape
     page = requests.get(url)                                        # Requesting the HTML content of the website
     soup = BeautifulSoup(page.text, 'html.parser')                  # Parsing the HTML content # Extracting text from each table and stripping whitespace
-    display_web_tables(soup, 'genTbl closedTbl crossRatesTbl', 'government_bonds')
+    display_web_tables(soup, 'genTbl closedTbl crossRatesTbl', 'government_bonds')# Calling the display_web_tables function
 
 def get_funds():                                                    # Function that gets the stocks of funds
     url = 'https://www.investing.com/funds/major-funds'             # URL of the website we will scrape
     page = requests.get(url)                                        # Requesting the HTML content of the website
     soup = BeautifulSoup(page.text, 'html.parser')                  # Parsing the HTML content # Extracting text from each table and stripping whitespace
-    display_web_tables(soup, 'datatable-v2_table__93S4Y', 'funds')
+    display_web_tables(soup, 'genTbl closedTbl crossRatesTbl elpTbl elp40', 'funds')# Calling the display_web_tables function
 
 def get_cryptocurrencies():                                         # Function that gets the stocks of cryptocurrencies
-    url = 'https://www.investing.com/crypto/currencies/'            # URL of the website we will scrape
+    url = 'https://markets.businessinsider.com/cryptocurrencies'             # URL of the website we will scrape
     page = requests.get(url)                                        # Requesting the HTML content of the website
     soup = BeautifulSoup(page.text, 'html.parser')                  # Parsing the HTML content # Extracting text from each table and stripping whitespace
-    display_web_tables(soup, 'datatable-v2_table__93S4Y', 'cryptocurrencies')
+    display_web_tables(soup, 'table table--col-1-font-color-black table--suppresses-line-breaks table--fixed', 'cryptocurrencies')# Calling display_web_tables
 
 # MAIN CODE ============================================================================================================
 
 # window
 window = ttk.Window(themename = 'darkly')                           # Creating a tkinter window and customising it
 window.title("Market Shares")                                       # Setting the title of the window
-window.geometry("1200x800")                                        # Setting the size of the window
+window.geometry("1200x800")                                         # Setting the size of the window
 
 # Buttons and their frame / visual functions
 buttons = [
