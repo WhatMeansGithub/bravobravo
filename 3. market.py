@@ -123,8 +123,12 @@ for text, command in buttons:
     ttk.Button(button_frame, text=text, command=command).pack(side='left', padx=5) 
 button_frame.pack(pady=20)  # Displaying the frame widget
 
-tree = ttk.Treeview(root)
-tree.pack(side='right', padx=20, pady=20, fill='y')
+tree = ttk.Treeview(root, show='headings', style="Treeview")
+
+
+
+tree.pack(side='right', padx=20, pady=20, fill='both', expand=True)
+
 
 root.mainloop()
         
