@@ -201,19 +201,34 @@ def copy_all():
     pyperclip.copy(str(profiles_data))
     messagebox.showinfo('Copy Successful', 'All profiles copied to clipboard!')
 
-def search_all():
+def search():
     search_text = search_entry.get().strip()
     if not search_text:
         messagebox.showwarning('No Search Text', 'Please enter a search keyword.')
         return
+
+    # Remove existing highlights
+    for item in tree.get_children():
+        tree.item(item, tags=())
+
     search_results = []
+    first_match = None
     for profile in profiles_data:
         if re.search(search_text, profile['Name'], re.IGNORECASE) or re.search(search_text, profile['Job Title'], re.IGNORECASE):
             search_results.append(profile)
+
     if search_results:
-        tree.delete(*tree.get_children())
-        for profile in search_results:
-            tree.insert('', 'end', values=(profile['Name'], profile['Job Title'], profile['Profile Link'], profile['Email'], profile['Phone Number']))
+        for item in tree.get_children():
+            item_values = tree.item(item, 'values')
+            for profile in search_results:
+                if (profile['Name'], profile['Job Title'], profile['Profile Link'], profile['Email'], profile['Phone Number']) == item_values:
+                    tree.item(item, tags=('highlight',))
+                    if first_match is None:
+                        first_match = item
+                    break
+        # Auto-scroll to the first match
+        if first_match:
+            tree.see(first_match)
     else:
         messagebox.showinfo('No Results', 'No profiles found matching the search keyword.')
 
@@ -227,14 +242,17 @@ page_number_label.pack()
 page_number_entry = tk.Entry(root)
 page_number_entry.pack()
 
+# Create a frame to hold the search entry and button on the left side
 left_frame = tk.Frame(root)
 left_frame.pack(side='left', padx=10, pady=10, fill='y')
 
+# Search entry
 search_entry = tk.Entry(root)
-search_entry.pack(pady=10, anchor='w')
+search_entry.pack(pady=5, anchor='w')
 
-search_all_button = tk.Button(root, text="Search", command=search_all)
-search_all_button.pack(pady=10, anchor='w')
+# Search button
+search_all_button = tk.Button(root, text="Search", command=search)
+search_all_button.pack(pady=5, anchor='w')
 
 # Create Treeview to display scraped data
 columns = ('Name', 'Job Title', 'Profile Link', 'Email', 'Phone Number')
@@ -242,6 +260,9 @@ tree = ttk.Treeview(root, columns=columns, show='headings')
 for col in columns:
     tree.heading(col, text=col)
 tree.pack(fill='both', expand=True)
+
+# Define a tag for highlighting search results
+tree.tag_configure('highlight', background='yellow')
 
 # Button to update and display scraped data
 update_button = tk.Button(root, text="Gimme the Juice", command=lambda: update_gui(page_number_entry.get()))
