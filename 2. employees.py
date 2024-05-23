@@ -36,6 +36,10 @@ def verify_email_smtp(email):
             return False
         
         mx_record = str(mx_records[0].exchange)
+
+        #to creat a new environment variable
+        #export SMTP_USER='your_gmail_username@gmail.com'
+        #export SMTP_PASSWORD='your_password'
         
         smtp_user = os.getenv('SMTP_USER')
         smtp_password = os.getenv('SMTP_PASSWORD')
