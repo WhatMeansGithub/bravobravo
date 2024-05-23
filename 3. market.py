@@ -14,8 +14,8 @@ def display_web_tables(soup, table_class, function_name):
     tables = soup.find_all('table', class_=table_class)             # Find all tables with the specified class
     if tables:                                                      # If at least one table is found
         combined_string = ""                                        # Create a string to store the text representation of all DataFrames
-        if not os.path.exists('market files'):                            # if the folder 'market' doesn't exist
-            os.makedirs('market files')                                   # Create the folder 'market'
+        if not os.path.exists('market files'):                      # if the folder 'market' doesn't exist
+            os.makedirs('market files')                             # Create the folder 'market'
         for i, table in enumerate(tables):                          # Loop through each found table
             headers = [header.text.strip() for header in table.find_all('th')]  # Extract all headers from currently accessed table
             rows = []                                               # Create an empty list to store rows
@@ -25,7 +25,7 @@ def display_web_tables(soup, table_class, function_name):
             df = pd.DataFrame(rows, columns=headers)                # Create DataFrame from headers and rows
             df.index = df.index + 1                                 # Increment index by 1 so it starts from 1 not 0
             file_name = f'{function_name}_{i+1}.csv'                # Save DataFrame to CSV file in the 'market' folder
-            file_path = os.path.join('market files', file_name)           # Create the file path
+            file_path = os.path.join('market files', file_name)     # Create the file path
             df.to_csv(file_path, index=False, mode='w')             # Save the DataFrame to the file path
             print(df)                                               # Display DataFrame
             combined_string += df.to_string() + "\n\n"              # Append the string representation of the DataFrame to the combined string
