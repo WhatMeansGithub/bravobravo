@@ -18,11 +18,11 @@ pygame.mixer.init()
 
 
 # Path to the music folder
-music_folder = 'Nessa/music/'
+music_folder = 'music player files - Nessa/music/'
 
 # List of songs and covers
 list_of_songs = [music_folder + 'Ayra-Starr-Commas.mp3', music_folder + 'Akwaboah-Jnr-Mesan-Agye-Wo-Live-session.mp3']
-list_of_covers = ['Nessa/img/colorful-music-note.jpg', 'Nessa/img/headimg.jpg','Nessa/img/beautiful-robotic-woman-listening.jpg', 'Nessa/img/person-listen-music.jpg', 'Nessa/img/music-note.jpg', 'Nessa/img/beautiful-robotic-woman-listening.jpg']
+list_of_covers = ['music player files - Nessa/img/colorful-music-note.jpg', 'music player files - Nessa/img/headimg.jpg','music player files - Nessa/img/beautiful-robotic-woman-listening.jpg', 'music player files - Nessa/img/person-listen-music.jpg', 'music player files - Nessa/img/music-note.jpg', 'music player files - Nessa/img/beautiful-robotic-woman-listening.jpg']
 n = 0
 
 
