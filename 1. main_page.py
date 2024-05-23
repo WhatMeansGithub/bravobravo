@@ -1,6 +1,6 @@
 import tkinter as tk                    # Importing tkinter as tk to create the GUI
 import ttkbootstrap as ttk              # Does the same as 'from tkinter import ttk' but lets us customize the GUI even more with themes
-
+from PIL import ImageTk                 # Importing Image and ImageTk from PIL to display images in the GUI
 
 root = ttk.Window(themename = 'darkly') # Creating a tkinter window and customising it
 root.title("Main Page")                 # Setting the title of the window
@@ -23,7 +23,7 @@ for text in buttons:
 button_frame.pack(pady=300)  # Displaying the frame widget
 
 # Creating a label widget to display the background image
-img= tk.PhotoImage(file='background', master=root)
+img = tk.PhotoImage(file='/program files/main_page_background.jpg', master=root)
 img_label = ttk.Label(root, image=img)
 img_label.pack(fill='both', expand=True)
 
