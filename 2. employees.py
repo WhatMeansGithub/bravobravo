@@ -1,6 +1,6 @@
 import re
 import pandas as pd
-import tkinter as tk
+import customtkinter as ctk
 from tkinter import ttk
 from tkinter import messagebox
 from selenium import webdriver
@@ -137,47 +137,80 @@ options.headless = True
 options.add_argument("--headless")                # This for some reason is needed to actually run in headless mode
 driver = webdriver.Firefox(options=options)       # Start the webdriver with the options specified
 
-# Initialize tkinter GUI
-root = tk.Tk()
+# Initialize customtkinter GUI
+ctk.set_appearance_mode("System")
+ctk.set_default_color_theme("green")
+
+root = ctk.CTk()
 root.title("Scraped Profiles")
 
-# Label and Entry for page number input
-page_number_label = tk.Label(root, text="Page Number:")
-page_number_label.pack()
-page_number_entry = tk.Entry(root)
-page_number_entry.pack()
+# Style for Treeview
+style = ttk.Style(root)
+style.theme_use("clam")  # Use 'clam' theme, which can be customized
 
-# Create Treeview to display scraped data
+# Customize the Treeview
+style.configure("Treeview",
+                background="#2e2e2e",
+                foreground="white",
+                rowheight=25,
+                fieldbackground="#4D4D4D")
+
+style.map('Treeview', background=[('selected', '#979797')])
+
+# Customize the Treeview headings
+style.configure("Treeview.Heading",
+                background="#1f6aa5",
+                foreground="white",
+                relief="flat")
+
+style.map("Treeview.Heading",
+          background=[('active', '#144870')])
+
+# Label and Entry for page number input
+page_number_label = ctk.CTkLabel(root, text="Page Number:")
+page_number_label.pack(pady=5)
+page_number_entry = ctk.CTkEntry(root, placeholder_text="Input page number...")
+page_number_entry.pack(pady=5)
+
+# Create Treeview to display scraped data using ttk
 columns = ('Name', 'Job Title', 'Profile Link', 'Email', 'Phone Number')
-tree = ttk.Treeview(root, columns=columns, show='headings')
+tree = ttk.Treeview(root, columns=columns, show='headings', style="Treeview")
 sort_orders = {col: False for col in columns}  # Dictionary to keep track of sort orders
 
 for col in columns:
     tree.heading(col, text=col, command=lambda _col=col: sort_column(_col))
-tree.pack(fill='both', expand=True)
+tree.pack(fill='both', expand=True, pady=5)
+
+# Container frame for the buttons
+button_frame = ctk.CTkFrame(root)
+button_frame.pack(pady=10)
+
+# Uniform button style
+button_style = {"corner_radius": 10, "fg_color": "#1f6aa5", "hover_color": "#144870", "text_color": "#ffffff"}
 
 # Button to update and display scraped data
-update_button = tk.Button(root, text="Gimme the Juice", command=lambda: update_gui(page_number_entry.get()))
-update_button.pack()
+update_button = ctk.CTkButton(button_frame, text="Gimme the Juice", command=lambda: update_gui(page_number_entry.get()), **button_style)
+update_button.pack(side="left", padx=5)
 
 # Button to export selected data
-export_selected_button = tk.Button(root, text="Export Selected", command=export_selected)
-export_selected_button.pack()
+export_selected_button = ctk.CTkButton(button_frame, text="Export Selected", command=export_selected, **button_style)
+export_selected_button.pack(side="left", padx=5)
 
 # Button to export all data
-export_all_button = tk.Button(root, text="Export All", command=export_all)
-export_all_button.pack()
+export_all_button = ctk.CTkButton(button_frame, text="Export All", command=export_all, **button_style)
+export_all_button.pack(side="left", padx=5)
 
 # Button to copy selected data
-copy_selected_button = tk.Button(root, text="Copy Selected", command=copy_selected)
-copy_selected_button.pack()
+copy_selected_button = ctk.CTkButton(button_frame, text="Copy Selected", command=copy_selected, **button_style)
+copy_selected_button.pack(side="left", padx=5)
 
 # Button to copy all data
-copy_all_button = tk.Button(root, text="Copy All", command=copy_all)
-copy_all_button.pack()
+copy_all_button = ctk.CTkButton(button_frame, text="Copy All", command=copy_all, **button_style)
+copy_all_button.pack(side="left", padx=5)
 
 # Run the GUI
 root.mainloop()
 
 # Quit Selenium WebDriver
 driver.quit()
+
