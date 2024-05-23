@@ -1,8 +1,7 @@
 import re
 import pandas as pd
-import customtkinter as ctk
-from tkinter import ttk
 import tkinter as tk
+from tkinter import ttk
 from tkinter import messagebox
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -27,18 +26,28 @@ def scrape_main_page(driver, page_url):
     return data
 
 # Function to scrape data from a profile page
-def scrape_profile_page(driver, profile_url):
-    driver.get(profile_url)
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'a-mailto')))
-    email_elem = driver.find_element(By.CLASS_NAME, 'a-mailto')
-    email = email_elem.get_attribute('href')
-    if email.startswith("mailto:"):
-        email = email.split(":")[1]
-    else:
-        email = email_elem.text.strip()
-    phone_elem = driver.find_element(By.XPATH, "//a[starts-with(@href, 'tel:')]")
-    phone = phone_elem.get_attribute('href').split(":")[1]
-    return {'Email': email, 'Phone Number': phone}
+def scrape_profile_page(profile):
+    profile_url = profile['Profile Link']
+    options = Options()
+    options.headless = True
+    driver = webdriver.Firefox(options=options)
+    try:
+        driver.get(profile_url)
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'a-mailto')))
+        email_elem = driver.find_element(By.CLASS_NAME, 'a-mailto')
+        email = email_elem.get_attribute('href')
+        if email.startswith("mailto:"):
+            email = email.split(":")[1]
+        else:
+            email = email_elem.text.strip()
+        phone_elem = driver.find_element(By.XPATH, "//a[starts-with(@href, 'tel:')]")
+        phone = phone_elem.get_attribute('href').split(":")[1]
+        profile.update({'Email': email, 'Phone Number': phone})
+    except Exception as e:
+        print(f"Failed to scrape profile page {profile_url}: {e}")
+    finally:
+        driver.quit()
+    return profile
 
 # Function to export data to CSV file with a unique name
 def export_to_csv(data):
@@ -61,20 +70,37 @@ def update_gui(page_num=None):
             messagebox.showwarning('Invalid Input', 'Please enter a valid page number.')
             return
     
-    for num in page_numbers:
-        print(f"Fetching data from page {num}")
-        page_url = f"https://www.epunkt.com/team/p{num}"
-        profiles_data += scrape_main_page(driver, page_url)
-        for profile in profiles_data:
-            profile.update(scrape_profile_page(driver, profile['Profile Link']))
-    print("Data fetching complete")
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        future_to_page = {executor.submit(fetch_page_data, num): num for num in page_numbers}
+        for future in concurrent.futures.as_completed(future_to_page):
+            profiles_data.extend(future.result())
+    
+    print("Main page data fetching complete")
+    
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        profiles_data = list(executor.map(scrape_profile_page, profiles_data))
+    
+    print("Profile data fetching complete")
     update_treeview()
+
+def fetch_page_data(page_num):
+    page_url = f"https://www.epunkt.com/team/p{page_num}"
+    options = Options()
+    options.headless = True
+    driver = webdriver.Firefox(options=options)
+    try:
+        return scrape_main_page(driver, page_url)
+    except Exception as e:
+        print(f"Failed to fetch data from page {page_num}: {e}")
+        return []
+    finally:
+        driver.quit()
 
 # Function to update the Treeview with scraped data
 def update_treeview():
     tree.delete(*tree.get_children())
     for profile in profiles_data:
-        tree.insert('', 'end', values=(profile['Name'], profile['Job Title'], profile['Profile Link'], profile['Email'], profile['Phone Number']))
+        tree.insert('', 'end', values=(profile['Name'], profile['Job Title'], profile['Profile Link'], profile.get('Email', ''), profile.get('Phone Number', '')))
 
 # Function to export selected profiles to CSV file
 def export_selected():
@@ -135,83 +161,50 @@ def sort_column(col):
 # Initialize Selenium WebDriver
 options = Options()
 options.headless = True
-options.add_argument("--headless")                # This for some reason is needed to actually run in headless mode
-driver = webdriver.Firefox(options=options)       # Start the webdriver with the options specified
+options.add_argument("--headless")
+driver = webdriver.Firefox(options=options)
 
-# Initialize customtkinter GUI
-ctk.set_appearance_mode("System")
-ctk.set_default_color_theme("green")
-
-root = ctk.CTk()
+# Initialize tkinter GUI
+root = tk.Tk()
 root.title("Scraped Profiles")
-# Style for Treeview
-style = ttk.Style()
-style.theme_use("clam")  # Use 'clam' theme, which can be customized
-
-# Customize the Treeview
-style.configure("Treeview",
-                background="#2e2e2e",
-                foreground="white",
-                rowheight=25,
-                fieldbackground="#2e2e2e")
-
-style.map('Treeview', background=[('selected', '#5a5a5a')])
-
-# Customize the Treeview headings
-style.configure("Treeview.Heading",
-                background="#1f6aa5",
-                foreground="white",
-                relief="flat")
-
-style.map("Treeview.Heading",
-          background=[('active', '#144870')])
 
 # Label and Entry for page number input
-page_number_label = ctk.CTkLabel(root, text="Page Number:")
-page_number_label.pack(pady=5)
-page_number_entry = ctk.CTkEntry(root, placeholder_text="Input page number...")
-page_number_entry.pack(pady=5)
+page_number_label = tk.Label(root, text="Page Number:")
+page_number_label.pack()
+page_number_entry = tk.Entry(root)
+page_number_entry.pack()
 
-# Create Treeview to display scraped data using ttk
+# Create Treeview to display scraped data
 columns = ('Name', 'Job Title', 'Profile Link', 'Email', 'Phone Number')
-tree = ttk.Treeview(root, columns=columns, show='headings', style="Treeview")
+tree = ttk.Treeview(root, columns=columns, show='headings')
 sort_orders = {col: False for col in columns}  # Dictionary to keep track of sort orders
 
 for col in columns:
     tree.heading(col, text=col, command=lambda _col=col: sort_column(_col))
-tree.pack(fill='both', expand=True, pady=5)
-
-# Container frame for the buttons
-button_frame = ctk.CTkFrame(root)
-button_frame.pack(pady=10)
-
-# Uniform button style
-button_style = {"corner_radius": 10, "fg_color": "#1f6aa5", "hover_color": "#144870", "text_color": "#ffffff"}
+tree.pack(fill='both', expand=True)
 
 # Button to update and display scraped data
-update_button = ctk.CTkButton(button_frame, text="Gimme the Juice", command=lambda: update_gui(page_number_entry.get()), **button_style)
-update_button.pack(side="left", padx=5)
+update_button = tk.Button(root, text="Gimme the Juice", command=lambda: update_gui(page_number_entry.get()))
+update_button.pack()
 
 # Button to export selected data
-export_selected_button = ctk.CTkButton(button_frame, text="Export Selected", command=export_selected, **button_style)
-export_selected_button.pack(side="left", padx=5)
+export_selected_button = tk.Button(root, text="Export Selected", command=export_selected)
+export_selected_button.pack()
 
 # Button to export all data
-export_all_button = ctk.CTkButton(button_frame, text="Export All", command=export_all, **button_style)
-export_all_button.pack(side="left", padx=5)
+export_all_button = tk.Button(root, text="Export All", command=export_all)
+export_all_button.pack()
 
 # Button to copy selected data
-copy_selected_button = ctk.CTkButton(button_frame, text="Copy Selected", command=copy_selected, **button_style)
-copy_selected_button.pack(side="left", padx=5)
+copy_selected_button = tk.Button(root, text="Copy Selected", command=copy_selected)
+copy_selected_button.pack()
 
 # Button to copy all data
-copy_all_button = ctk.CTkButton(button_frame, text="Copy All", command=copy_all, **button_style)
-copy_all_button.pack(side="left", padx=5)
+copy_all_button = tk.Button(root, text="Copy All", command=copy_all)
+copy_all_button.pack()
 
 # Run the GUI
 root.mainloop()
 
 # Quit Selenium WebDriver
 driver.quit()
-
-
