@@ -2,8 +2,7 @@ import re
 import os
 import pandas as pd
 import tkinter as tk
-from tkinter import ttk
-from tkinter import messagebox
+from tkinter import ttk, messagebox
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
@@ -202,6 +201,22 @@ def copy_all():
     pyperclip.copy(str(profiles_data))
     messagebox.showinfo('Copy Successful', 'All profiles copied to clipboard!')
 
+def search_all():
+    search_text = search_entry.get().strip()
+    if not search_text:
+        messagebox.showwarning('No Search Text', 'Please enter a search keyword.')
+        return
+    search_results = []
+    for profile in profiles_data:
+        if re.search(search_text, profile['Name'], re.IGNORECASE) or re.search(search_text, profile['Job Title'], re.IGNORECASE):
+            search_results.append(profile)
+    if search_results:
+        tree.delete(*tree.get_children())
+        for profile in search_results:
+            tree.insert('', 'end', values=(profile['Name'], profile['Job Title'], profile['Profile Link'], profile['Email'], profile['Phone Number']))
+    else:
+        messagebox.showinfo('No Results', 'No profiles found matching the search keyword.')
+
 # Initialize tkinter GUI
 root = tk.Tk()
 root.title("Scraped Profiles")
@@ -211,6 +226,15 @@ page_number_label = tk.Label(root, text="Page Number:")
 page_number_label.pack()
 page_number_entry = tk.Entry(root)
 page_number_entry.pack()
+
+left_frame = tk.Frame(root)
+left_frame.pack(side='left', padx=10, pady=10, fill='y')
+
+search_entry = tk.Entry(root)
+search_entry.pack(pady=10, anchor='w')
+
+search_all_button = tk.Button(root, text="Search", command=search_all)
+search_all_button.pack(pady=10, anchor='w')
 
 # Create Treeview to display scraped data
 columns = ('Name', 'Job Title', 'Profile Link', 'Email', 'Phone Number')
