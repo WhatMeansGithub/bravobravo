@@ -90,11 +90,11 @@ def update_treeview(tree, headers, rows):
     # Set new columns
     tree["columns"] = ["Index"] + headers                           # Add "Index" as the first column
     tree.heading("Index", text="Index")                             # Set the heading for the "Index" column
-    tree.column("Index", anchor='center', width=50, stretch=True)  # Set the width of the "Index" column and disable stretching
+    tree.column("Index", anchor='w', width=100, stretch=True)  # Set the width of the "Index" column and disable stretching
     
     for header in headers:
         tree.heading(header, text=header)
-        tree.column(header, anchor='center', width=50, minwidth=50, stretch=True) 
+        tree.column(header, anchor='center', width=90, minwidth=120, stretch=False) 
     # Insert new rows
     for i, row in enumerate(rows, start=1):  # Start the index from 1
         tree.insert("", "end", values=[i] + row)  # Add the index as the first value in each row
@@ -126,7 +126,7 @@ for text, command in buttons:
 button_frame.pack(pady=(20,0))  # Displaying the frame widget
 
 tree = ttk.Treeview(root, show='headings', style="Treeview")  # Create Treeview to display scraped data using ttk
-tree.pack(side='right', anchor='e', padx=7, pady=7, fill='y', expand=True )  # Displaying the tree widget
+tree.pack(side='right', anchor='e', padx=7, pady=7, fill='both', expand=True )  # Displaying the tree widget
 
 
 
