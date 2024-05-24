@@ -94,7 +94,7 @@ def update_treeview(tree, headers, rows):
     
     for header in headers:
         tree.heading(header, text=header)
-        tree.column(header, anchor='center', width=90, minwidth=120, stretch=False) 
+        tree.column(header, anchor='center', width=105, minwidth=120, stretch=False) 
     # Insert new rows
     for i, row in enumerate(rows, start=1):  # Start the index from 1
         tree.insert("", "end", values=[i] + row)  # Add the index as the first value in each row
@@ -104,12 +104,11 @@ def update_treeview(tree, headers, rows):
 
 root = ttk.Window(themename = 'darkly')                           # Creating a tkinter window and customising it
 root.title("Market Shares")                                       # Setting the title of the window
-root.geometry("1200x800")  # Setting the fixed size of the window
-root.resizable(False, False)  # Disabling window resizing
+root.geometry("1200x800")                                         # Setting the fixed size of the window
+root.resizable(False, False)                                      # Disabling window resizing
 
-# Buttons and their frame / visual functions
-buttons = [
-    ("Indices", get_indices),
+buttons = [                                                       # List of buttons to display on the GUI        
+    ("Indices", get_indices),                                     # Each button has a name and a function to call when clicked
     ("Trending Stocks", get_trending_stocks),
     ("Commodity Futures", get_commodity_futures),
     ("Exchange Rates", get_exchange_rates),
@@ -118,27 +117,21 @@ buttons = [
     ("Funds", get_funds),
     ("Cryptocurrencies", get_cryptocurrencies)
 ]
-combined_string = ""  # Define the variable "combined_string"
-button_frame = ttk.Frame(root)
-button_frame.pack(anchor='e', padx=7, pady=0)
-for text, command in buttons:
-    ttk.Button(button_frame, text=text, command=command).pack(side='left', padx=0) 
-button_frame.pack(pady=(20,0))  # Displaying the frame widget
+combined_string = ""                                              # Define the variable "combined_string"
+button_frame = ttk.Frame(root)                                    # Creating a frame widget to hold the buttons and customizing them
+button_frame.pack(anchor='e', padx=7, pady=0)                     # Placing the frame widget on the right side of the window
+for text, command in buttons:                                     # Placing the buttons in the button frame widget and customizing it
+    ttk.Button(button_frame, text=text, command=command).pack(side='left', padx=0) # Create a button with the specified text and command
+button_frame.pack(pady=(20,0))                                    # Displaying the frame widget
 
-tree = ttk.Treeview(root, show='headings', style="Treeview")  # Create Treeview to display scraped data using ttk
+tree = ttk.Treeview(root, show='headings', style="Treeview")      # Create Treeview to display scraped data using ttk
 tree.pack(side='right', anchor='e', padx=7, pady=7, fill='both', expand=True )  # Displaying the tree widget
 
-
-
-
-# Creating a frame widget to hold the buttons and customizing them
-buttons = ["Back", "Employees", "Music", "Exit"]
-button_frame = ttk.Frame(root)  
-button_frame.place(relx=0, rely=0.5, anchor='w')  
-
-# Placing the buttons in the button frame widget and customizing it
-for text in buttons:
-    button = ctk.CTkButton(button_frame, text=text, width=250, height=100, anchor='center')  
+buttons = ["Back", "Employees", "Music", "Exit"]                  # List of navigational buttons to display on the GUI
+button_frame = ttk.Frame(root)                                    # Creating a frame widget to hold the buttons and customize them
+button_frame.place(relx=0, rely=0.5, anchor='w')                  # Placing the frame widget on the left side of the window
+for text in buttons:                                              # Placing the buttons in the button frame widget and customizing it
+    button = ctk.CTkButton(button_frame, text=text, width=250, height=100, anchor='center')  # 
     button.pack(padx=32, pady=(52)) 
 
 root.mainloop()
