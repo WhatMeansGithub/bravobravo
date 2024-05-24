@@ -5,7 +5,7 @@ from tkinter import ttk
 from tkinter import messagebox
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pyperclip
@@ -15,9 +15,9 @@ import concurrent.futures
 # Function to scrape data from the main page
 def scrape_main_page(driver, page_url):
     driver.get(page_url)
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.m-profileImage')))
-    profiles = driver.find_elements(By.CSS_SELECTOR, '.m-profileImage')
-    data = []
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.m-profileImage')))  # This tells the webdriver to wait 10 seconds until the css element ".m-profileimage" is loaded
+    profiles = driver.find_elements(By.CSS_SELECTOR, '.m-profileImage')                                    # This allows us to access and manipulate the selected elements later     
+    data = []                                                                                              # Creates an empty list for data 
     for profile in profiles:
         name = profile.find_element(By.CLASS_NAME, 'm-profileImage__name').text.strip()
         job_title = profile.find_element(By.CLASS_NAME, 'm-profileImage__jobDescription').text.strip()
@@ -31,8 +31,8 @@ def scrape_profile_page(driver, profile_url):
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'a-mailto')))
     email_elem = driver.find_element(By.CLASS_NAME, 'a-mailto')
     email = email_elem.get_attribute('href')
-    if email.startswith("mailto:"):
-        email = email.split(":")[1]
+    if email.startswith("mailto:"):                                                             # Checks whether the email variable starts with "mailto"
+        email = email.split(":")[1]                                                             # Splits the string each time it encounters a ":", the "[1]" refers to the second item in the list       
     else:
         email = email_elem.text.strip()
     phone_elem = driver.find_element(By.XPATH, "//a[starts-with(@href, 'tel:')]")
@@ -52,7 +52,7 @@ def update_gui(page_num=None):
     global profiles_data
     profiles_data = []
     if page_num is None or page_num.strip() == "":
-        page_numbers = range(1, 12)
+        page_numbers = range(1, 12)  # Gets pages 1-11 from the website if there's no input for page numbers
     else:
         try:
             page_numbers = [int(page_num)]
@@ -61,13 +61,14 @@ def update_gui(page_num=None):
             return
     
     for num in page_numbers:
-        print(f"Fetching data from page {num}")
+        print(f"Fetching data from page {num}")                                   # print statement to check if the program hangs fetching a certain page
         page_url = f"https://www.epunkt.com/team/p{num}"
         profiles_data += scrape_main_page(driver, page_url)
         for profile in profiles_data:
-            profile.update(scrape_profile_page(driver, profile['Profile Link']))
+            profile.update(scrape_profile_page(driver, profile['Profile Link']))  # Update with email and phone
     print("Data fetching complete")
     update_treeview()
+
 
 # Function to update the Treeview with scraped data
 def update_treeview():
@@ -124,18 +125,11 @@ def copy_all():
     pyperclip.copy(str(profiles_data))
     messagebox.showinfo('Copy Successful', 'All profiles copied to clipboard!')
 
-# Function to sort the Treeview column
-def sort_column(col):
-    global profiles_data
-    profiles_data.sort(key=lambda x: x[col], reverse=sort_orders[col])
-    sort_orders[col] = not sort_orders[col]
-    update_treeview()
-
 # Initialize Selenium WebDriver
 options = Options()
 options.headless = True
-options.add_argument("--headless")                # This for some reason is needed to actually run in headless mode
-driver = webdriver.Firefox(options=options)       # Start the webdriver with the options specified
+options.add_argument("--headless")  # Add this line to run the browser in headless mode
+driver = webdriver.Chrome(options=options)
 
 # Initialize tkinter GUI
 root = tk.Tk()
@@ -150,10 +144,8 @@ page_number_entry.pack()
 # Create Treeview to display scraped data
 columns = ('Name', 'Job Title', 'Profile Link', 'Email', 'Phone Number')
 tree = ttk.Treeview(root, columns=columns, show='headings')
-sort_orders = {col: False for col in columns}  # Dictionary to keep track of sort orders
-
 for col in columns:
-    tree.heading(col, text=col, command=lambda _col=col: sort_column(_col))
+    tree.heading(col, text=col)
 tree.pack(fill='both', expand=True)
 
 # Button to update and display scraped data
