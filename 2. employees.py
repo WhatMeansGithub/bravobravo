@@ -89,10 +89,10 @@ def update_gui(page_num=None):
     for num in page_numbers:
         print(f"Fetching data from page {num}")
         page_url = f"https://www.epunkt.com/team/p{num}"
-        page_data = scrape_main_page(driver, page_url)  # Use a temporary list to store the current page data
-        for profile in page_data:
+        profiles_data += scrape_main_page(driver, page_url)
+        for profile in profiles_data:
             profile.update(scrape_profile_page(driver, profile['Profile Link']))
-        profiles_data += page_data  # Merge the current page data into the main profiles_data list
+    driver.quit()
     print("Data fetching complete")
     update_treeview()
 
