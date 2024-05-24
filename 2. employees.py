@@ -143,14 +143,14 @@ options.add_argument("--headless")                # This for some reason is need
 driver = webdriver.Firefox(options=options)       # Start the webdriver with the options specified
 
 # Initialize customtkinter GUI
-ctk.set_appearance_mode("System")
+ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("green")
 
 root = ctk.CTk()
 root.title("Scraped Profiles")
 # Style for Treeview
 style = ttk.Style()
-style.theme_use("clam")  # Use 'clam' theme, which can be customized
+style.theme_use("clam")  # set the theme to use for ttk
 
 # Customize the Treeview
 style.configure("Treeview",
@@ -163,12 +163,12 @@ style.map('Treeview', background=[('selected', '#5a5a5a')])
 
 # Customize the Treeview headings
 style.configure("Treeview.Heading",
-                background="#1f6aa5",
+                background="#1FA557",
                 foreground="white",
                 relief="flat")
 
 style.map("Treeview.Heading",
-          background=[('active', '#144870')])
+          background=[('active', '#14702B')])
 
 # Label and Entry for page number input
 page_number_label = ctk.CTkLabel(root, text="Page Number:")
@@ -190,7 +190,7 @@ button_frame = ctk.CTkFrame(root)
 button_frame.pack(pady=10)
 
 # Uniform button style
-button_style = {"corner_radius": 10, "fg_color": "#1f6aa5", "hover_color": "#144870", "text_color": "#ffffff"}
+button_style = {"corner_radius": 10, "fg_color": "#1FA557", "hover_color": "#14702B", "text_color": "#ffffff"}
 
 # Button to update and display scraped data
 update_button = ctk.CTkButton(button_frame, text="Gimme the Juice", command=lambda: update_gui(page_number_entry.get()), **button_style)
