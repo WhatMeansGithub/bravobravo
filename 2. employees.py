@@ -5,32 +5,54 @@ import tkinter as tk
 from tkinter import messagebox
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pyperclip
 import datetime
-import os                      # Importing os to be able to create a folder to store the exported files / added lines - 15, 47, 48, 50
+import os
 
+# Function to initialize WebDriver
+def initialize_driver():
+    try:
+        # Attempt to use Firefox
+        firefox_options = FirefoxOptions()
+        firefox_options.headless = False
+        firefox_options.add_argument("--headless")
+        driver = webdriver.Firefox(options=firefox_options)
+        print("Using Firefox WebDriver")
+    except Exception as e:
+        print(f"Failed to initialize Firefox WebDriver: {e}")
+        try:
+            # Attempt to use Chrome
+            chrome_options = ChromeOptions()
+            chrome_options.add_argument("--headless")
+            driver = webdriver.Chrome(options=chrome_options)
+            print("Using Chrome WebDriver")
+        except Exception as e:
+            print(f"Failed to initialize Chrome WebDriver: {e}")
+            raise RuntimeError("No suitable WebDriver found. Please ensure you have either geckodriver or chromedriver installed.")
+    return driver
 
 # Function to scrape data from the main page
 def scrape_main_page(driver, page_url):                                                                      
-    driver.get(page_url)                                                                                    # Get the page url to use for scraping
-    WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.m-profileImage')))    # Wait 10 seconds before timeout until it detects the CSS element
-    profiles = driver.find_elements(By.CSS_SELECTOR, '.m-profileImage')                                     # Find the CSS element
-    data = []                                                                                               # Create a list for data
-    for profile in profiles:                                                                                # Loop to find all profile names and job descriptions on the page
+    driver.get(page_url)                                                                                    
+    WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.m-profileImage')))    
+    profiles = driver.find_elements(By.CSS_SELECTOR, '.m-profileImage')                                     
+    data = []                                                                                               
+    for profile in profiles:                                                                                
         name = profile.find_element(By.CLASS_NAME, 'm-profileImage__name').text.strip()
         job_title = profile.find_element(By.CLASS_NAME, 'm-profileImage__jobDescription').text.strip()
-        profile_link = profile.get_attribute('href')                                                        # Gets the profile page link
-        data.append({'Name': name, 'Job Title': job_title, 'Profile Link': profile_link})                   # Appends all the data to the data list
+        profile_link = profile.get_attribute('href')                                                        
+        data.append({'Name': name, 'Job Title': job_title, 'Profile Link': profile_link})                   
     return data
 
 # Function to scrape data from a profile page
 def scrape_profile_page(driver, profile_url):
-    driver.get(profile_url)                                                                                 # Gets the profile page url we scraped previously
-    WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.CLASS_NAME, 'a-mailto')))             # Timeout of 10 seconds to search for email address
-    email_elem = driver.find_element(By.CLASS_NAME, 'a-mailto')                                             # Looks for mailto descriptor to find email address
+    driver.get(profile_url)                                                                                 
+    WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.CLASS_NAME, 'a-mailto')))             
+    email_elem = driver.find_element(By.CLASS_NAME, 'a-mailto')                                             
     email = email_elem.get_attribute('href')
     if email.startswith("mailto:"):
         email = email.split(":")[1]
@@ -42,10 +64,10 @@ def scrape_profile_page(driver, profile_url):
 
 # Function to export data to CSV file with a unique name
 def export_to_csv(data):
-    if not os.path.exists('employees files'):                                                               # if the folder 'employees files' doesn't exist
-        os.makedirs('employees files')                                                                      # Create the folder 'employees files'
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")                                             # Timestamp the file name
-    filename = os.path.join('employees files', f"profiles_{timestamp}.csv")                                 # Save the file in the 'employees files' folder
+    if not os.path.exists('employees files'):                                                               
+        os.makedirs('employees files')                                                                      
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")                                             
+    filename = os.path.join('employees files', f"profiles_{timestamp}.csv")                                 
     df = pd.DataFrame(data)
     df.to_csv(filename, index=False)
     messagebox.showinfo('Export Successful', f'Data exported to {filename}!')
@@ -63,13 +85,14 @@ def update_gui(page_num=None):
             messagebox.showwarning('Invalid Input', 'Please enter a valid page number.')
             return
     
+    driver = initialize_driver()
     for num in page_numbers:
         print(f"Fetching data from page {num}")
         page_url = f"https://www.epunkt.com/team/p{num}"
-        page_data = scrape_main_page(driver, page_url)  # Use a temporary list to store the current page data
-        for profile in page_data:
+        profiles_data += scrape_main_page(driver, page_url)
+        for profile in profiles_data:
             profile.update(scrape_profile_page(driver, profile['Profile Link']))
-        profiles_data += page_data  # Merge the current page data into the main profiles_data list
+    driver.quit()
     print("Data fetching complete")
     update_treeview()
 
@@ -134,12 +157,6 @@ def sort_column(col):
     profiles_data.sort(key=lambda x: x[col], reverse=sort_orders[col])
     sort_orders[col] = not sort_orders[col]
     update_treeview()
-
-# Initialize Selenium WebDriver
-options = Options()
-options.headless = False
-options.add_argument("--headless")                # This for some reason is needed to actually run in headless mode
-driver = webdriver.Firefox(options=options)       # Start the webdriver with the options specified
 
 # Initialize customtkinter GUI
 ctk.set_appearance_mode("dark")
