@@ -1,3 +1,4 @@
+import re
 import pandas as pd
 import customtkinter as ctk
 from tkinter import ttk
@@ -10,6 +11,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pyperclip
 import datetime
+import concurrent.futures
 import os                      # Importing os to be able to create a folder to store the exported files / added lines - 15, 47, 48, 50
 
 
