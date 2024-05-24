@@ -1,5 +1,4 @@
 import tkinter as tk                    # Importing tkinter as tk to create the GUI
-import tkinter.ttk as ttk               # Does the same as 'from tkinter import ttk' but lets us customize the GUI even more with themes
 import ttkbootstrap as ttk              # Does the same as 'from tkinter import ttk' but lets us customize the GUI even more with themes
 from tkinter import font as tkFont      # Importing font as tkFont to customize the font of the GUI
 from PIL import Image, ImageTk          # Importing Image and ImageTk from PIL to display images in the GUI

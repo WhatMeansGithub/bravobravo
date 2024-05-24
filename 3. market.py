@@ -1,7 +1,6 @@
 from bs4 import BeautifulSoup  # Importing BeautifulSoup to parse HTML content
 import customtkinter as ctk    # Importing customtkinter to customise the GUI more
 import ttkbootstrap as ttk     # Does the same as 'from tkinter import ttk' but lets us customize the GUI even more with themes
-import tkinter as tk           # Importing tkinter to create a GUI
 import requests                # Importing requests to get HTML content from a website
 import pandas as pd            # Importing pandas for data manipulation and file saving
 import os                      # Importing os to use the clear function from the os and create a folder to store the exported files
@@ -29,9 +28,12 @@ def display_web_tables(soup, table_class, function_name):
             file_name = f'{function_name}_{i+1}.csv'                # Save DataFrame to CSV file in the 'market' folder
             file_path = os.path.join('market files', file_name)     # Create the file path
             df.to_csv(file_path, index=False, mode='w')             # Save the DataFrame to the file path
-            print(df)                                               # Display DataFrame
-            combined_string += df.to_string() + "\n\n"              # Append the string representation of the DataFrame to the combined string
-            update_treeview(tree, headers, rows)
+            try:                                                    # using try and except because Markus said so
+                print(df)                                               # Display DataFrame
+                combined_string += df.to_string() + "\n\n"              # Append the string representation of the DataFrame to the combined string
+                update_treeview(tree, headers, rows)
+            except:
+                print("Error displaying the table.")
     else:
         print("No table found with the specified class.")  
 
@@ -94,12 +96,11 @@ def update_treeview(tree, headers, rows):
     
     for header in headers:
         tree.heading(header, text=header)
-        tree.column(header, anchor='center', width=130, minwidth=120 , stretch=True) 
+        tree.column(header, anchor='center', width=120, minwidth=120 , stretch=True) 
     for i, row in enumerate(rows, start=1):                       # Insert new rows / Start the index from 1
         tree.insert("", "end", values=[i] + row)                  # Add the index as the first value in each row
 
 # MAIN CODE ============================================================================================================
-
 
 root = ttk.Window(themename = 'darkly')                           # Creating a tkinter window and customising it
 root.title("Market Shares")                                       # Setting the title of the window
@@ -124,10 +125,10 @@ for text, command in buttons:                                     # Placing the 
 button_frame.pack(pady=(20,0))                                    # Displaying the frame widget
 
 treeview_frame = ttk.Frame(root)                                  # Create a frame widget to hold the treeview and customize it
-treeview_frame.pack(side='left', padx=(315,50), pady=7, fill='both', expand=True, ipadx=7, ipady=7)  # Place the frame widget on the right side of the window
+treeview_frame.pack(side='left', padx=(315,7), pady=7, fill='both', expand=True, ipadx=7, ipady=7)  # Place the frame widget on the right side of the window
 tree = ttk.Treeview(treeview_frame, show='headings', style="Treeview")
 tree.pack(fill='both', expand=True)
-scrollbar = ttk.Scrollbar(root, orient='vertical', command=tree.yview)  # Create a scrollbar widget
+scrollbar = ttk.Scrollbar(treeview_frame, orient='vertical', command=tree.yview)  # Create a scrollbar widget
 scrollbar.pack(side='right', anchor='ne', fill='y')                             # Place the scrollbar on the right side of the treeview
 
 buttons = ["Back", "Employees", "Music", "Exit"]                  # List of navigational buttons to display on the GUI
