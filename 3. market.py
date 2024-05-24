@@ -1,9 +1,11 @@
 from bs4 import BeautifulSoup  # Importing BeautifulSoup to parse HTML content
+import customtkinter as ctk    # Importing customtkinter to customise the GUI more
 import ttkbootstrap as ttk     # Does the same as 'from tkinter import ttk' but lets us customize the GUI even more with themes
 import tkinter as tk           # Importing tkinter to create a GUI
 import requests                # Importing requests to get HTML content from a website
 import pandas as pd            # Importing pandas for data manipulation and file saving
 import os                      # Importing os to use the clear function from the os and create a folder to store the exported files
+
 
 # FUNCTIONS ============================================================================================================
 
@@ -118,17 +120,26 @@ buttons = [
 ]
 combined_string = ""  # Define the variable "combined_string"
 button_frame = ttk.Frame(root)
-button_frame.pack(anchor='e', padx=15, pady=10)
+button_frame.pack(anchor='e', padx=7, pady=0)
 for text, command in buttons:
-    ttk.Button(button_frame, text=text, command=command).pack(side='left', padx=5) 
-button_frame.pack(pady=20)  # Displaying the frame widget
+    ttk.Button(button_frame, text=text, command=command).pack(side='left', padx=0) 
+button_frame.pack(pady=(20,0))  # Displaying the frame widget
 
-tree = ttk.Treeview(root, show='headings', style="Treeview")
+tree = ttk.Treeview(root, show='headings', style="Treeview")  # Create Treeview to display scraped data using ttk
+tree.pack(side='right', anchor='e', padx=7, pady=7, fill='y', expand=True )  # Displaying the tree widget
 
 
 
-tree.pack(side='right', padx=20, pady=20, fill='both', expand=True)
 
+# Creating a frame widget to hold the buttons and customizing them
+buttons = ["Back", "Employees", "Music", "Exit"]
+button_frame = ttk.Frame(root)  
+button_frame.place(relx=0, rely=0.5, anchor='w')  
+
+# Placing the buttons in the button frame widget and customizing it
+for text in buttons:
+    button = ctk.CTkButton(button_frame, text=text, width=250, height=100, anchor='center')  
+    button.pack(padx=32, pady=(52)) 
 
 root.mainloop()
         
