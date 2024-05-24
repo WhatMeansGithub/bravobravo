@@ -18,7 +18,7 @@ def initialize_driver():
     try:
         # Attempt to use Firefox
         firefox_options = FirefoxOptions()
-        firefox_options.headless = False
+        firefox_options.headless = True
         firefox_options.add_argument("--headless")
         driver = webdriver.Firefox(options=firefox_options)
         print("Using Firefox WebDriver")
