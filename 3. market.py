@@ -1,22 +1,23 @@
 from bs4 import BeautifulSoup  # Importing BeautifulSoup to parse HTML content
+import customtkinter as ctk    # Importing customtkinter to customise the GUI more
 import ttkbootstrap as ttk     # Does the same as 'from tkinter import ttk' but lets us customize the GUI even more with themes
 import tkinter as tk           # Importing tkinter to create a GUI
 import requests                # Importing requests to get HTML content from a website
 import pandas as pd            # Importing pandas for data manipulation and file saving
-import os                      # Importing os to use the clear function from the os
+import os                      # Importing os to use the clear function from the os and create a folder to store the exported files
+
 
 # FUNCTIONS ============================================================================================================
 
 clear = lambda: os.system('clear')                                  # Function to clear the terminal
 clear()                                                             # Clear terminal output
 
-import pandas as pd
-from bs4 import BeautifulSoup
-
 def display_web_tables(soup, table_class, function_name):
     tables = soup.find_all('table', class_=table_class)             # Find all tables with the specified class
     if tables:                                                      # If at least one table is found
         combined_string = ""                                        # Create a string to store the text representation of all DataFrames
+        if not os.path.exists('market files'):                      # if the folder 'market' doesn't exist
+            os.makedirs('market files')                             # Create the folder 'market'
         for i, table in enumerate(tables):                          # Loop through each found table
             headers = [header.text.strip() for header in table.find_all('th')]  # Extract all headers from currently accessed table
             rows = []                                               # Create an empty list to store rows
@@ -25,11 +26,12 @@ def display_web_tables(soup, table_class, function_name):
                 rows.append([col.text.strip() for col in columns])  # Append cleaned text to rows list
             df = pd.DataFrame(rows, columns=headers)                # Create DataFrame from headers and rows
             df.index = df.index + 1                                 # Increment index by 1 so it starts from 1 not 0
-            file_name = f'{function_name}_{i+1}.csv'                # Save DataFrame to CSV file
-            df.to_csv(file_name, index=False, mode='w')             # Save the DataFrame to a CSV file
+            file_name = f'{function_name}_{i+1}.csv'                # Save DataFrame to CSV file in the 'market' folder
+            file_path = os.path.join('market files', file_name)     # Create the file path
+            df.to_csv(file_path, index=False, mode='w')             # Save the DataFrame to the file path
             print(df)                                               # Display DataFrame
             combined_string += df.to_string() + "\n\n"              # Append the string representation of the DataFrame to the combined string
-        output_string.set(combined_string)                          # Set the combined string in the output string (for GUI use)
+            update_treeview(tree, headers, rows)
     else:
         print("No table found with the specified class.")  
 
@@ -81,12 +83,29 @@ def get_cryptocurrencies():                                         # Function t
     soup = BeautifulSoup(page.text, 'html.parser')                  # Parsing the HTML content # Extracting text from each table and stripping whitespace
     display_web_tables(soup, 'table table--col-1-font-color-black table--suppresses-line-breaks table--fixed', 'cryptocurrencies')# Calling display_web_tables
 
+def update_treeview(tree, headers, rows):
+    # Clear existing data
+    tree.delete(*tree.get_children())
+    
+    # Set new columns
+    tree["columns"] = ["Index"] + headers                           # Add "Index" as the first column
+    tree.heading("Index", text="Index")                             # Set the heading for the "Index" column
+    tree.column("Index", anchor='w', width=100, stretch=True)  # Set the width of the "Index" column and disable stretching
+    
+    for header in headers:
+        tree.heading(header, text=header)
+        tree.column(header, anchor='center', width=90, minwidth=120, stretch=False) 
+    # Insert new rows
+    for i, row in enumerate(rows, start=1):  # Start the index from 1
+        tree.insert("", "end", values=[i] + row)  # Add the index as the first value in each row
+
 # MAIN CODE ============================================================================================================
 
-# window
-window = ttk.Window(themename = 'darkly')                           # Creating a tkinter window and customising it
-window.title("Market Shares")                                       # Setting the title of the window
-window.geometry("1200x800")                                         # Setting the size of the window
+
+root = ttk.Window(themename = 'darkly')                           # Creating a tkinter window and customising it
+root.title("Market Shares")                                       # Setting the title of the window
+root.geometry("1200x800")  # Setting the fixed size of the window
+root.resizable(False, False)  # Disabling window resizing
 
 # Buttons and their frame / visual functions
 buttons = [
@@ -99,18 +118,28 @@ buttons = [
     ("Funds", get_funds),
     ("Cryptocurrencies", get_cryptocurrencies)
 ]
-button_frame = ttk.Frame(window)
-button_frame.pack(anchor='ne', padx=10, pady=10)
+combined_string = ""  # Define the variable "combined_string"
+button_frame = ttk.Frame(root)
+button_frame.pack(anchor='e', padx=7, pady=0)
 for text, command in buttons:
-    ttk.Button(button_frame, text=text, command=command).pack(side='left', padx=5)
-button_frame.pack(pady=20)  # Displaying the frame widget
+    ttk.Button(button_frame, text=text, command=command).pack(side='left', padx=0) 
+button_frame.pack(pady=(20,0))  # Displaying the frame widget
 
-# Output field
-output_string = tk.StringVar()  
-output_text = ttk.Label(master=window, font='Calibri 15', textvariable=output_string, justify='left') 
-output_text.pack(side='right', padx=20)  
-output_string.set('')  
+tree = ttk.Treeview(root, show='headings', style="Treeview")  # Create Treeview to display scraped data using ttk
+tree.pack(side='right', anchor='e', padx=7, pady=7, fill='both', expand=True )  # Displaying the tree widget
 
-# Running the GUI
-window.mainloop()                                                                         
 
+
+
+# Creating a frame widget to hold the buttons and customizing them
+buttons = ["Back", "Employees", "Music", "Exit"]
+button_frame = ttk.Frame(root)  
+button_frame.place(relx=0, rely=0.5, anchor='w')  
+
+# Placing the buttons in the button frame widget and customizing it
+for text in buttons:
+    button = ctk.CTkButton(button_frame, text=text, width=250, height=100, anchor='center')  
+    button.pack(padx=32, pady=(52)) 
+
+root.mainloop()
+        
