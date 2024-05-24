@@ -14,23 +14,23 @@ import os                      # Importing os to be able to create a folder to s
 
 
 # Function to scrape data from the main page
-def scrape_main_page(driver, page_url):
-    driver.get(page_url)
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.m-profileImage')))
-    profiles = driver.find_elements(By.CSS_SELECTOR, '.m-profileImage')
-    data = []
-    for profile in profiles:
+def scrape_main_page(driver, page_url):                                                                      
+    driver.get(page_url)                                                                                    # Get the page url to use for scraping
+    WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.m-profileImage')))    # Wait 10 seconds before timeout until it detects the CSS element
+    profiles = driver.find_elements(By.CSS_SELECTOR, '.m-profileImage')                                     # Find the CSS element
+    data = []                                                                                               # Create a list for data
+    for profile in profiles:                                                                                # Loop to find all profile names and job descriptions on the page
         name = profile.find_element(By.CLASS_NAME, 'm-profileImage__name').text.strip()
         job_title = profile.find_element(By.CLASS_NAME, 'm-profileImage__jobDescription').text.strip()
-        profile_link = profile.get_attribute('href')
-        data.append({'Name': name, 'Job Title': job_title, 'Profile Link': profile_link})
+        profile_link = profile.get_attribute('href')                                                        # Gets the profile page link
+        data.append({'Name': name, 'Job Title': job_title, 'Profile Link': profile_link})                   # Appends all the data to the data list
     return data
 
 # Function to scrape data from a profile page
 def scrape_profile_page(driver, profile_url):
-    driver.get(profile_url)
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'a-mailto')))
-    email_elem = driver.find_element(By.CLASS_NAME, 'a-mailto')
+    driver.get(profile_url)                                                                                 # Gets the profile page url we scraped previously
+    WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.CLASS_NAME, 'a-mailto')))             # Timeout of 10 seconds to search for email address
+    email_elem = driver.find_element(By.CLASS_NAME, 'a-mailto')                                             # Looks for mailto descriptor to find email address
     email = email_elem.get_attribute('href')
     if email.startswith("mailto:"):
         email = email.split(":")[1]
@@ -42,10 +42,10 @@ def scrape_profile_page(driver, profile_url):
 
 # Function to export data to CSV file with a unique name
 def export_to_csv(data):
-    if not os.path.exists('employees files'):                               # if the folder 'employees files' doesn't exist
-        os.makedirs('employees files')                                      # Create the folder 'employees files'
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")
-    filename = os.path.join('employees files', f"profiles_{timestamp}.csv") # Save the file in the 'employees files' folder
+    if not os.path.exists('employees files'):                                                               # if the folder 'employees files' doesn't exist
+        os.makedirs('employees files')                                                                      # Create the folder 'employees files'
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")                                             # Timestamp the file name
+    filename = os.path.join('employees files', f"profiles_{timestamp}.csv")                                 # Save the file in the 'employees files' folder
     df = pd.DataFrame(data)
     df.to_csv(filename, index=False)
     messagebox.showinfo('Export Successful', f'Data exported to {filename}!')
@@ -66,9 +66,10 @@ def update_gui(page_num=None):
     for num in page_numbers:
         print(f"Fetching data from page {num}")
         page_url = f"https://www.epunkt.com/team/p{num}"
-        profiles_data += scrape_main_page(driver, page_url)
-        for profile in profiles_data:
+        page_data = scrape_main_page(driver, page_url)  # Use a temporary list to store the current page data
+        for profile in page_data:
             profile.update(scrape_profile_page(driver, profile['Profile Link']))
+        profiles_data += page_data  # Merge the current page data into the main profiles_data list
     print("Data fetching complete")
     update_treeview()
 
@@ -136,7 +137,7 @@ def sort_column(col):
 
 # Initialize Selenium WebDriver
 options = Options()
-options.headless = True
+options.headless = False
 options.add_argument("--headless")                # This for some reason is needed to actually run in headless mode
 driver = webdriver.Firefox(options=options)       # Start the webdriver with the options specified
 
