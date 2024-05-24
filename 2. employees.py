@@ -55,7 +55,7 @@ def scrape_profile_page(driver, profile_url):
     email_elem = driver.find_element(By.CLASS_NAME, 'a-mailto')                                             
     email = email_elem.get_attribute('href')
     if email.startswith("mailto:"):
-        email = email.split(":")[1]
+        email = email.split(":")[1]                                 # Splits the string each time it encounters a ":", the "[1]" refers to the second item in the list
     else:
         email = email_elem.text.strip()
     phone_elem = driver.find_element(By.XPATH, "//a[starts-with(@href, 'tel:')]")
@@ -89,12 +89,13 @@ def update_gui(page_num=None):
     for num in page_numbers:
         print(f"Fetching data from page {num}")
         page_url = f"https://www.epunkt.com/team/p{num}"
-        profiles_data += scrape_main_page(driver, page_url)
-        for profile in profiles_data:
+        page_data = scrape_main_page(driver, page_url)  # Use a temporary list to store the current page data
+        for profile in page_data:
             profile.update(scrape_profile_page(driver, profile['Profile Link']))
-    driver.quit()
+        profiles_data += page_data  # Merge the current page data into the main profiles_data list
     print("Data fetching complete")
     update_treeview()
+    driver.quit
 
 # Function to update the Treeview with scraped data
 def update_treeview():
@@ -231,7 +232,5 @@ copy_all_button.pack(side="left", padx=5)
 # Run the GUI
 root.mainloop()
 
-# Quit Selenium WebDriver
-driver.quit()
 
 
