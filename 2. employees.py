@@ -55,7 +55,7 @@ def scrape_profile_page(driver, profile_url):
     email_elem = driver.find_element(By.CLASS_NAME, 'a-mailto')                                             
     email = email_elem.get_attribute('href')
     if email.startswith("mailto:"):
-        email = email.split(":")[1]
+        email = email.split(":")[1]                                 # Splits the string each time it encounters a ":", the "[1]" refers to the second item in the list
     else:
         email = email_elem.text.strip()
     phone_elem = driver.find_element(By.XPATH, "//a[starts-with(@href, 'tel:')]")
