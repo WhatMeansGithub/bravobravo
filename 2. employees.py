@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 import re
 import os
 import pandas as pd
@@ -13,6 +14,8 @@ import datetime
 import concurrent.futures
 import smtplib
 import dns.resolver
+
+load_dotenv()
 
 # Function to initialize Selenium WebDriver
 def initialize_driver():
@@ -37,7 +40,7 @@ def verify_email_smtp(email):
         
         mx_record = str(mx_records[0].exchange)
 
-        #to creat a new environment variable
+        #to creat a new environment variable write in the console:
         #export SMTP_USER='your_gmail_username@gmail.com'
         #export SMTP_PASSWORD='your_password'
         
@@ -106,15 +109,14 @@ def scrape_profile_page(profile):
         email = email.split(":")[1]
     else:
         email = email_elem.text.strip()
-    
-          # SMTP validation
-    if not verify_email_smtp(email):
-        email = 'Email does not exist'
+
+    # SMTP validation
+    email_valid = verify_email_smtp(email)
 
     phone_elem = driver.find_element(By.XPATH, "//a[starts-with(@href, 'tel:')]")
     phone = phone_elem.get_attribute('href').split(":")[1]
     driver.quit()
-    profile.update({'Email': email, 'Phone Number': phone})
+    profile.update({'Email': email, 'Phone Number': phone, 'Email Valid': email_valid})
     return profile
     
 
@@ -154,7 +156,9 @@ def update_gui(page_num=None):
 def update_treeview():
     tree.delete(*tree.get_children())
     for profile in profiles_data:
-        tree.insert('', 'end', values=(profile['Name'], profile['Job Title'], profile['Profile Link'], profile['Email'], profile['Phone Number']))
+        item = tree.insert('', 'end', values=(profile['Name'], profile['Job Title'], profile['Profile Link'], profile['Email'], profile['Phone Number']))
+        if profile.get('Email Valid', False):
+            tree.item(item, tags=('validated',))
 
 # Function to export selected profiles to CSV file
 def export_selected():
@@ -211,12 +215,9 @@ def search():
         messagebox.showwarning('No Search Text', 'Please enter a search keyword.')
         return
 
-    # Remove existing highlights
-    for item in tree.get_children():
-        tree.item(item, tags=())
-
     search_results = []
     first_match = None
+
     for profile in profiles_data:
         if re.search(search_text, profile['Name'], re.IGNORECASE) or re.search(search_text, profile['Job Title'], re.IGNORECASE):
             search_results.append(profile)
@@ -224,9 +225,13 @@ def search():
     if search_results:
         for item in tree.get_children():
             item_values = tree.item(item, 'values')
+            item_tags = list(tree.item(item, 'tags'))  # Get current tags
             for profile in search_results:
                 if (profile['Name'], profile['Job Title'], profile['Profile Link'], profile['Email'], profile['Phone Number']) == item_values:
-                    tree.item(item, tags=('highlight',))
+                    if 'validated' in item_tags:
+                        tree.item(item, tags=('highlight', 'validated'))
+                    else:
+                        tree.item(item, tags=('highlight',))
                     if first_match is None:
                         first_match = item
                     break
@@ -268,6 +273,8 @@ tree.pack(fill='both', expand=True)
 
 # Define a tag for highlighting search results
 tree.tag_configure('highlight', background='yellow')
+tree.tag_configure('validated', background='lightgreen')
+
 
 # Button to update and display scraped data
 update_button = tk.Button(root, text="Gimme the Juice", command=lambda: update_gui(page_number_entry.get()))
