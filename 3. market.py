@@ -90,14 +90,13 @@ def update_treeview(tree, headers, rows):
     # Set new columns
     tree["columns"] = ["Index"] + headers                           # Add "Index" as the first column
     tree.heading("Index", text="Index")                             # Set the heading for the "Index" column
-    tree.column("Index", anchor='w', width=100, stretch=True)  # Set the width of the "Index" column and disable stretching
+    tree.column("Index", anchor='w', width=50, stretch=False)  # Set the width of the "Index" column and disable stretching
     
     for header in headers:
         tree.heading(header, text=header)
-        tree.column(header, anchor='center', width=105, minwidth=120, stretch=False) 
-    # Insert new rows
-    for i, row in enumerate(rows, start=1):  # Start the index from 1
-        tree.insert("", "end", values=[i] + row)  # Add the index as the first value in each row
+        tree.column(header, anchor='center', width=130, minwidth=120 , stretch=True) 
+    for i, row in enumerate(rows, start=1):                       # Insert new rows / Start the index from 1
+        tree.insert("", "end", values=[i] + row)                  # Add the index as the first value in each row
 
 # MAIN CODE ============================================================================================================
 
@@ -124,8 +123,12 @@ for text, command in buttons:                                     # Placing the 
     ttk.Button(button_frame, text=text, command=command).pack(side='left', padx=0) # Create a button with the specified text and command
 button_frame.pack(pady=(20,0))                                    # Displaying the frame widget
 
-tree = ttk.Treeview(root, show='headings', style="Treeview")      # Create Treeview to display scraped data using ttk
-tree.pack(side='right', anchor='e', padx=7, pady=7, fill='both', expand=True )  # Displaying the tree widget
+treeview_frame = ttk.Frame(root)                                  # Create a frame widget to hold the treeview and customize it
+treeview_frame.pack(side='left', padx=(315,50), pady=7, fill='both', expand=True, ipadx=7, ipady=7)  # Place the frame widget on the right side of the window
+tree = ttk.Treeview(treeview_frame, show='headings', style="Treeview")
+tree.pack(fill='both', expand=True)
+scrollbar = ttk.Scrollbar(root, orient='vertical', command=tree.yview)  # Create a scrollbar widget
+scrollbar.pack(side='right', anchor='ne', fill='y')                             # Place the scrollbar on the right side of the treeview
 
 buttons = ["Back", "Employees", "Music", "Exit"]                  # List of navigational buttons to display on the GUI
 button_frame = ttk.Frame(root)                                    # Creating a frame widget to hold the buttons and customize them
