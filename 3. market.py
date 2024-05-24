@@ -5,11 +5,7 @@ import requests                # Importing requests to get HTML content from a w
 import pandas as pd            # Importing pandas for data manipulation and file saving
 import os                      # Importing os to use the clear function from the os and create a folder to store the exported files
 
-
 # FUNCTIONS ============================================================================================================
-
-clear = lambda: os.system('clear')                                  # Function to clear the terminal
-clear()                                                             # Clear terminal output
 
 def display_web_tables(soup, table_class, function_name):
     tables = soup.find_all('table', class_=table_class)             # Find all tables with the specified class
