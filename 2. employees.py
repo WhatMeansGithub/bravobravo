@@ -107,16 +107,10 @@ def update_gui(page_num=None):
     for num in page_numbers:
         print(f"Fetching data from page {num}")                                   # print statement to check if the program hangs fetching a certain page
         page_url = f"https://www.epunkt.com/team/p{num}"
-<<<<<<< HEAD
-        profiles_data += scrape_main_page(driver, page_url)
-        for profile in profiles_data:
-            profile.update(scrape_profile_page(driver, profile['Profile Link']))  # Update with email and phone
-=======
         page_data = scrape_main_page(driver, page_url)  # Use a temporary list to store the current page data
         for profile in page_data:
             profile.update(scrape_profile_page(driver, profile['Profile Link']))
         profiles_data += page_data  # Merge the current page data into the main profiles_data list
->>>>>>> 1a09e3a1b7db0d1e6a1ac1056c1752b6e067b112
     print("Data fetching complete")
     update_treeview()
     driver.quit
@@ -177,13 +171,6 @@ def copy_all():
     pyperclip.copy(str(profiles_data))
     messagebox.showinfo('Copy Successful', 'All profiles copied to clipboard!')
 
-<<<<<<< HEAD
-# Initialize Selenium WebDriver
-options = Options()
-options.headless = True
-options.add_argument("--headless")  # Add this line to run the browser in headless mode
-driver = webdriver.Chrome(options=options)
-=======
 # Function to sort the Treeview column
 def sort_column(col):
     global profiles_data
@@ -194,7 +181,6 @@ def sort_column(col):
 # Initialize customtkinter GUI
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("green")
->>>>>>> 1a09e3a1b7db0d1e6a1ac1056c1752b6e067b112
 
 root = ctk.CTk()
 root.title("Scraped Profiles")
@@ -228,12 +214,6 @@ page_number_entry.pack(pady=5)
 
 # Create Treeview to display scraped data using ttk
 columns = ('Name', 'Job Title', 'Profile Link', 'Email', 'Phone Number')
-<<<<<<< HEAD
-tree = ttk.Treeview(root, columns=columns, show='headings')
-for col in columns:
-    tree.heading(col, text=col)
-tree.pack(fill='both', expand=True)
-=======
 tree = ttk.Treeview(root, columns=columns, show='headings', style="Treeview")
 sort_orders = {col: False for col in columns}  # Dictionary to keep track of sort orders
 
@@ -247,7 +227,6 @@ button_frame.pack(pady=10)
 
 # Uniform button style
 button_style = {"corner_radius": 10, "fg_color": "#1FA557", "hover_color": "#14702B", "text_color": "#ffffff"}
->>>>>>> 1a09e3a1b7db0d1e6a1ac1056c1752b6e067b112
 
 # Button to update and display scraped data
 update_button = ctk.CTkButton(button_frame, text="Gimme the Juice", command=lambda: update_gui(page_number_entry.get()), **button_style)
