@@ -3,11 +3,9 @@ from tkinter import filedialog, messagebox
 import customtkinter
 from PIL import Image, ImageTk
 import os
-import json
 import pygame
 import threading
 import time
-import requests
 from mutagen.mp3 import MP3
 from googleapiclient.discovery import build
 from pytube import YouTube
@@ -15,6 +13,10 @@ from moviepy.editor import AudioFileClip
 
 # Initialize pygame mixer
 pygame.mixer.init()
+
+# Set appearance mode and default color theme
+customtkinter.set_appearance_mode("System")  # Modes: system (default), light, dark
+customtkinter.set_default_color_theme("green")  # Themes: blue (default), dark-blue, green
 
 # Global variables
 list_of_songs = []
@@ -98,7 +100,7 @@ def volume(value):
 
 # Function to open music player window
 def open_music_player():
-    global music_player, list_of_songs, list_of_covers, n
+    global music_player, list_of_songs, list_of_covers, n, pbar, lbox
     root.destroy()  # Close the root window when the music player is opened
     music_player = customtkinter.CTk()
     music_player.title("Vibe Box")
@@ -118,16 +120,34 @@ def open_music_player():
     list_of_covers = ['Nessa/img/colorful-music-note.jpg', 'Nessa/img/headimg.jpg', 'Nessa/img/beautiful-robotic-woman-listening.jpg', 'Nessa/img/person-listen-music.jpg', 'Nessa/img/music-note.jpg', 'Nessa/img/beautiful-robotic-woman-listening.jpg']
     n = 0
 
-    # Back button to return to the main page
-    def back_to_main():
-        music_player.destroy()
-        main()
+    
+    # Function to handle song selection from dropdown
+    def on_song_selected(event):
+        selected_song = song_listbox.get(song_listbox.curselection())
+        song_index = list_of_songs.index(selected_song)
+        play_music(song_index)
 
-    back_button = customtkinter.CTkButton(master=music_player, text="< Back", command=back_to_main)
-    back_button.place(relx=0.02, rely=0.02, anchor=tk.NW)
+    # Function to open dropdown list in a new window
+    def open_dropdown():
+        dropdown_window = tk.Toplevel(music_player)
+        dropdown_window.title("Select Song")
+        dropdown_window.geometry("300x400")
 
-    select_folder_button = customtkinter.CTkButton(master=music_player, text="Select Music Folder", command=select_music_folder, width=5)
-    select_folder_button.place(relx=0.5, rely=0.05, anchor=tk.CENTER)
+        scrollbar = tk.Scrollbar(dropdown_window)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        global song_listbox
+        song_listbox = tk.Listbox(dropdown_window, yscrollcommand=scrollbar.set)
+        for song in list_of_songs:
+            song_listbox.insert(tk.END, os.path.basename(song))
+        song_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        scrollbar.config(command=song_listbox.yview)
+
+        song_listbox.bind("<<ListboxSelect>>", on_song_selected)
+
+    dropdown_button = customtkinter.CTkButton(master=music_player, text="Select Music", command=open_dropdown)
+    dropdown_button.place(relx=0.01, rely=0.01, anchor=tk.NW)
 
     play_button = customtkinter.CTkButton(master=music_player, text='Play', command=play_music, width=5)
     play_button.place(relx=0.5, rely=0.7, anchor=tk.CENTER)
@@ -144,13 +164,20 @@ def open_music_player():
     slider = customtkinter.CTkSlider(master=music_player, from_=0, to=1, command=volume, width=210)
     slider.place(relx=0.5, rely=0.78, anchor=tk.CENTER)
 
-    global pbar
     pbar = customtkinter.CTkProgressBar(master=music_player)
     pbar.place(relx=.5, rely=.85, anchor=tk.CENTER)
 
-    global lbox
     lbox = tk.Listbox(music_player)
     lbox.place(relx=0.5, rely=0.9, anchor=tk.LEFT)
+
+    for song in list_of_songs:
+        lbox.insert(tk.END, os.path.basename(song))
+
+    def play_selected_song(event):
+        selected_index = lbox.curselection()[0]
+        play_music(selected_index)
+    
+    lbox.bind('<Double-1>', play_selected_song)
 
     music_player.mainloop()
 
@@ -202,128 +229,55 @@ def search_music_online():
             videoCategoryId="10"  # Music category
         )
         response = request.execute()
-        search_results = [(item['snippet']['title'], f"https://www.youtube.com/watch?v={item['id']['videoId']}") for item in response.get('items', [])]
+        search_results = [(item['snippet']['title'], f"https://www.youtube.com/watch?v={item['id']['videoId']}") for item in response['items']]
         display_search_results(search_results)
 
-# Function to display search results and allow downloading
+# Function to display search results
 def display_search_results(results):
     search_results_window = customtkinter.CTkToplevel(root)
     search_results_window.title("Search Results")
     search_results_window.geometry("400x300")
-    
-    for idx, (song_name, song_url) in enumerate(results):
-        result_label = customtkinter.CTkLabel(master=search_results_window, text=song_name)
-        result_label.grid(row=idx, column=0, pady=5, padx=5)
-        
-        download_button = customtkinter.CTkButton(master=search_results_window, text="Download", command=lambda url=song_url, name=song_name: download_and_add_to_playlist(url, name))
-        download_button.grid(row=idx, column=1, pady=5, padx=5)
 
-def download_and_add_to_playlist(url, song_name):
-    save_directory = "downloads"
-    if not os.path.exists(save_directory):
-        os.makedirs(save_directory)
-    
-    mp4_filename = f"{song_name}.mp4"
-    mp3_filename = f"{song_name}.mp3"
-    mp4_path = os.path.join(save_directory, mp4_filename)
-    mp3_path = os.path.join(save_directory, mp3_filename)
+    for idx, (song_name, url) in enumerate(results):
+        result_label = customtkinter.CTkLabel(search_results_window, text=song_name)
+        result_label.pack(pady=2)
+        download_button = customtkinter.CTkButton(search_results_window, text="Download", command=lambda url=url: download_and_convert(url))
+        download_button.pack(pady=2)
 
-    if download_music(url, mp4_path):
-        if convert_to_mp3(mp4_path, mp3_path):
-            os.remove(mp4_path)  # Remove the MP4 file after conversion
-            messagebox.showinfo("Success", f"{song_name} downloaded and converted to MP3 successfully!")
-            list_of_songs.append(mp3_path)
-            lbox.insert(tk.END, song_name)
+# Function to download and convert music
+def download_and_convert(url):
+    file_path = filedialog.asksaveasfilename(defaultextension=".mp3", filetypes=[("MP3 files", "*.mp3")])
+    if file_path:
+        mp4_path = file_path.replace(".mp3", ".mp4")
+        if download_music(url, mp4_path):
+            if convert_to_mp3(mp4_path, file_path):
+                os.remove(mp4_path)
+                messagebox.showinfo("Success", "Download and conversion successful!")
+            else:
+                messagebox.showerror("Error", "Failed to convert to MP3")
         else:
-            messagebox.showerror("Error", f"Failed to convert {song_name} to MP3.")
-    else:
-        messagebox.showerror("Error", f"Failed to download {song_name}.")
+            messagebox.showerror("Error", "Failed to download music")
 
-# Function to open the downloads and playlist window
-def open_downloads_playlist():
-    global downloads_window, bg_label_playlist, dropdown
+# Main application window
+root = customtkinter.CTk()
+root.title("Music Application")
+root.geometry("400x200")
 
-    downloads_window = customtkinter.CTk()
-    downloads_window.title("Downloads and Playlist")
-    downloads_window.geometry("600x540")
+search_label = customtkinter.CTkLabel(root, text="Search Music Online:")
+search_label.pack(pady=10)
+search_entry = customtkinter.CTkEntry(root)
+search_entry.pack(pady=10)
+search_button = customtkinter.CTkButton(root, text="Search", command=search_music_online)
+search_button.pack(pady=10)
 
-    # Add background image
-    bg_image_playlist = Image.open('Nessa/img/3d-music.jpg')
-    bg_image_playlist = bg_image_playlist.resize((600, 540), Image.Resampling.LANCZOS)
-    bg_photo_playlist = ImageTk.PhotoImage(bg_image_playlist)
+download_label = customtkinter.CTkLabel(root, text="Download and Convert Music:")
+download_label.pack(pady=10)
+url_entry = customtkinter.CTkEntry(root, placeholder_text="Enter YouTube URL")
+url_entry.pack(pady=10)
+download_button = customtkinter.CTkButton(root, text="Download", command=lambda: download_and_convert(url_entry.get()))
+download_button.pack(pady=10)
 
-    bg_label_playlist = tk.Label(downloads_window, image=bg_photo_playlist)
-    bg_label_playlist.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
-    bg_label_playlist.image = bg_photo_playlist
+open_music_player_button = customtkinter.CTkButton(root, text="Open Music Player", command=open_music_player)
+open_music_player_button.pack(pady=10)
 
-    # Back button to return to the main page
-    def back_to_main():
-        downloads_window.destroy()
-        main()
-
-    back_button = customtkinter.CTkButton(master=downloads_window, text="< Back", command=back_to_main)
-    back_button.place(relx=0.02, rely=0.02, anchor=tk.NW)
-
-    listbox = tk.Listbox(downloads_window)
-    listbox.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
-    
-    for idx, song in enumerate(list_of_songs):
-        listbox.insert(tk.END, os.path.basename(song))
-
-    def play_selected_song(event):
-        selected_index = listbox.curselection()[0]
-        play_music(selected_index)
-    
-    listbox.bind('<Double-1>', play_selected_song)
-
-    play_button_playlist = customtkinter.CTkButton(master=downloads_window, text='Play', command=play_music, width=5)
-    play_button_playlist.place(relx=0.4, rely=0.9, anchor=tk.CENTER)
-    
-    pause_button_playlist = customtkinter.CTkButton(master=downloads_window, text='Pause', command=pause_music, width=5)
-    pause_button_playlist.place(relx=0.5, rely=0.9, anchor=tk.CENTER)
-    
-    skip_b_playlist = customtkinter.CTkButton(master=downloads_window, text='<', command=play_previous_music, width=5)
-    skip_b_playlist.place(relx=0.3, rely=0.9, anchor=tk.CENTER)
-    
-    skip_f_playlist = customtkinter.CTkButton(master=downloads_window, text='>', command=play_next_music, width=5)
-    skip_f_playlist.place(relx=0.6, rely=0.9, anchor=tk.CENTER)
-    
-    slider_playlist = customtkinter.CTkSlider(master=downloads_window, from_=0, to=1, command=volume, width=210)
-    slider_playlist.place(relx=0.5, rely=0.95, anchor=tk.CENTER)
-
-    downloads_window.mainloop()
-
-# Function to launch the main window
-def main():
-    global root, search_entry
-    root = customtkinter.CTk()
-    root.title("Vibe Box")
-    root.geometry("600x540")
-
-    # Background  image the main window
-    img = ImageTk.PhotoImage(Image.open("Nessa/img/beautiful-robotic-woman-listening.jpg"))
-    i1 = customtkinter.CTkLabel(master=root, image=img)
-    i1.pack()
-
-    frame = customtkinter.CTkFrame(master=root, width=300, height=350, corner_radius=20)
-    frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
-
-    l1 = customtkinter.CTkLabel(master=frame, text="Vibe Box", font=("microsoft yahei", 24), text_color="#87c423")
-    l1.place(x=50, y=45)
-
-    search_entry = customtkinter.CTkEntry(master=frame, placeholder_text="Search Music Online", height=40, width=200, corner_radius=20, border_width=0, fg_color="black")
-    search_entry.place(x=50, y=110)
-
-    search_button = customtkinter.CTkButton(master=frame, text="Search", font=("microsoft yahei", 12), height=30, width=140, corner_radius=20, command=search_music_online, fg_color="#87c423", text_color="#01120d", border_width=0, hover_color="#15A911", cursor="hand2")
-    search_button.place(x=84, y=170)
-
-    open_player_button = customtkinter.CTkButton(master=frame, text="Open Music Player", font=("microsoft yahei", 12), height=30, width=140, corner_radius=20, command=open_music_player, fg_color="#87c423", text_color="#01120d", border_width=0, hover_color="#15A911", cursor="hand2")
-    open_player_button.place(x=84, y=230)
-
-    open_downloads_button = customtkinter.CTkButton(master=frame, text="Downloads and Playlist", font=("microsoft yahei", 12), height=30, width=140, corner_radius=20, command=open_downloads_playlist, fg_color="#87c423", text_color="#01120d", border_width=0, hover_color="#15A911", cursor="hand2")
-    open_downloads_button.place(x=84, y=290)
-
-    root.mainloop()
-
-if __name__ == "__main__":
-    main()
+root.mainloop()
