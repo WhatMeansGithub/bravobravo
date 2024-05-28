@@ -5,12 +5,8 @@ import tkinter as tk
 from tkinter import messagebox
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-<<<<<<< HEAD
-from selenium.webdriver.chrome.options import Options
-=======
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.chrome.options import Options as ChromeOptions
->>>>>>> 1a09e3a1b7db0d1e6a1ac1056c1752b6e067b112
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pyperclip
@@ -40,21 +36,12 @@ def initialize_driver():
     return driver
 
 # Function to scrape data from the main page
-<<<<<<< HEAD
-def scrape_main_page(driver, page_url):
-    driver.get(page_url)
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.m-profileImage')))  # This tells the webdriver to wait 10 seconds until the css element ".m-profileimage" is loaded
-    profiles = driver.find_elements(By.CSS_SELECTOR, '.m-profileImage')                                    # This allows us to access and manipulate the selected elements later     
-    data = []                                                                                              # Creates an empty list for data 
-    for profile in profiles:
-=======
 def scrape_main_page(driver, page_url):                                                                      
     driver.get(page_url)                                                                                    
     WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.m-profileImage')))    
     profiles = driver.find_elements(By.CSS_SELECTOR, '.m-profileImage')                                     
     data = []                                                                                               
     for profile in profiles:                                                                                
->>>>>>> 1a09e3a1b7db0d1e6a1ac1056c1752b6e067b112
         name = profile.find_element(By.CLASS_NAME, 'm-profileImage__name').text.strip()
         job_title = profile.find_element(By.CLASS_NAME, 'm-profileImage__jobDescription').text.strip()
         profile_link = profile.get_attribute('href')                                                        
@@ -67,13 +54,8 @@ def scrape_profile_page(driver, profile_url):
     WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.CLASS_NAME, 'a-mailto')))             
     email_elem = driver.find_element(By.CLASS_NAME, 'a-mailto')                                             
     email = email_elem.get_attribute('href')
-<<<<<<< HEAD
-    if email.startswith("mailto:"):                                                             # Checks whether the email variable starts with "mailto"
-        email = email.split(":")[1]                                                             # Splits the string each time it encounters a ":", the "[1]" refers to the second item in the list       
-=======
     if email.startswith("mailto:"):
         email = email.split(":")[1]                                 # Splits the string each time it encounters a ":", the "[1]" refers to the second item in the list
->>>>>>> 1a09e3a1b7db0d1e6a1ac1056c1752b6e067b112
     else:
         email = email_elem.text.strip()
     phone_elem = driver.find_element(By.XPATH, "//a[starts-with(@href, 'tel:')]")
