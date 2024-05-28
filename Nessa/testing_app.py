@@ -45,11 +45,11 @@ def display_cover_and_name(song_index):
 
     label1 = customtkinter.CTkLabel(music_player, image=load)
     label1.image = load
-    label1.place(relx=0.19, rely=0.06)
+    label1.place(relx=0.23, rely=0.13)
 
     stripped_string = os.path.splitext(song_name)[0]
     song_name_label = customtkinter.CTkLabel(music_player, text=stripped_string, bg_color='#222222', text_color='white')
-    song_name_label.place(relx=.4, rely=.6)
+    song_name_label.place(relx=.3, rely=.9)
 
 # Function to play music
 def play_music(song_index=None):
@@ -148,6 +148,8 @@ def open_music_player():
 
     dropdown_button = customtkinter.CTkButton(master=music_player, text="Select Music", command=open_dropdown)
     dropdown_button.place(relx=0.01, rely=0.01, anchor=tk.NW)
+
+   
 
     play_button = customtkinter.CTkButton(master=music_player, text='Play', command=play_music, width=5)
     play_button.place(relx=0.5, rely=0.7, anchor=tk.CENTER)
