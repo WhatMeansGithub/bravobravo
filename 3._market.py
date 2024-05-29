@@ -131,10 +131,10 @@ tree.pack(side='left', fill='both', expand=True)                  # Pack the tre
 
 buttons = ["Back", "Clear / Refresh", "Employees", "Music", "Exit"]                  # List of navigational buttons to display on the GUI
 button_frame = ttk.Frame(root)                                    # Creating a frame widget to hold the buttons and customize them
-button_frame.place(relx=0, rely=0.5, anchor='w')                  # Placing the frame widget on the left side of the window
+button_frame.place(relx=0.13, rely=0, anchor='n')                  # Placing the frame widget on the left side of the window
 for text in buttons:                                              # Placing the buttons in the button frame widget and customizing it
     button = ctk.CTkButton(button_frame, text=text, width=290, height=100, anchor='center')  # 
-    button.pack(padx=12, pady=(10)) 
+    button.pack(padx=14, pady=(20,0)) 
     if text == "Back":
         button.configure(command=lambda: os.system('python 1._main_page.py'))
     elif text == "Clear / Refresh":
