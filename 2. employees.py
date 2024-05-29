@@ -16,22 +16,22 @@ import os
 # Function to initialize WebDriver
 def initialize_driver():
     try:
-        # Attempt to use Firefox
-        firefox_options = FirefoxOptions()
-        firefox_options.headless = False
-        firefox_options.add_argument("--headless")
-        driver = webdriver.Firefox(options=firefox_options)
-        print("Using Firefox WebDriver")
+        # Attempt to use Chrome
+        chrome_options = ChromeOptions()
+        chrome_options.add_argument("--headless")
+        driver = webdriver.Chrome(options=chrome_options)
+        print("Using Chrome WebDriver")
     except Exception as e:
-        print(f"Failed to initialize Firefox WebDriver: {e}")
+        print(f"Failed to initialize Chrome WebDriver: {e}")
         try:
-            # Attempt to use Chrome
-            chrome_options = ChromeOptions()
-            chrome_options.add_argument("--headless")
-            driver = webdriver.Chrome(options=chrome_options)
-            print("Using Chrome WebDriver")
+            # Attempt to use Firefox
+            firefox_options = FirefoxOptions()
+            firefox_options.headless = False
+            firefox_options.add_argument("--headless")
+            driver = webdriver.Firefox(options=firefox_options)
+            print("Using Firefox WebDriver")
         except Exception as e:
-            print(f"Failed to initialize Chrome WebDriver: {e}")
+            print(f"Failed to initialize Firefox WebDriver: {e}")
             raise RuntimeError("No suitable WebDriver found. Please ensure you have either geckodriver or chromedriver installed.")
     return driver
 
