@@ -5,12 +5,8 @@ import tkinter as tk
 from tkinter import messagebox
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-<<<<<<< HEAD
-from selenium.webdriver.chrome.options import Options
-=======
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.chrome.options import Options as ChromeOptions
->>>>>>> 1a09e3a1b7db0d1e6a1ac1056c1752b6e067b112
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import pyperclip
@@ -40,21 +36,12 @@ def initialize_driver():
     return driver
 
 # Function to scrape data from the main page
-<<<<<<< HEAD
-def scrape_main_page(driver, page_url):
-    driver.get(page_url)
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.m-profileImage')))  # This tells the webdriver to wait 10 seconds until the css element ".m-profileimage" is loaded
-    profiles = driver.find_elements(By.CSS_SELECTOR, '.m-profileImage')                                    # This allows us to access and manipulate the selected elements later     
-    data = []                                                                                              # Creates an empty list for data 
-    for profile in profiles:
-=======
 def scrape_main_page(driver, page_url):                                                                      
     driver.get(page_url)                                                                                    
     WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.m-profileImage')))    
     profiles = driver.find_elements(By.CSS_SELECTOR, '.m-profileImage')                                     
     data = []                                                                                               
     for profile in profiles:                                                                                
->>>>>>> 1a09e3a1b7db0d1e6a1ac1056c1752b6e067b112
         name = profile.find_element(By.CLASS_NAME, 'm-profileImage__name').text.strip()
         job_title = profile.find_element(By.CLASS_NAME, 'm-profileImage__jobDescription').text.strip()
         profile_link = profile.get_attribute('href')                                                        
@@ -67,13 +54,8 @@ def scrape_profile_page(driver, profile_url):
     WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.CLASS_NAME, 'a-mailto')))             
     email_elem = driver.find_element(By.CLASS_NAME, 'a-mailto')                                             
     email = email_elem.get_attribute('href')
-<<<<<<< HEAD
-    if email.startswith("mailto:"):                                                             # Checks whether the email variable starts with "mailto"
-        email = email.split(":")[1]                                                             # Splits the string each time it encounters a ":", the "[1]" refers to the second item in the list       
-=======
     if email.startswith("mailto:"):
         email = email.split(":")[1]                                 # Splits the string each time it encounters a ":", the "[1]" refers to the second item in the list
->>>>>>> 1a09e3a1b7db0d1e6a1ac1056c1752b6e067b112
     else:
         email = email_elem.text.strip()
     phone_elem = driver.find_element(By.XPATH, "//a[starts-with(@href, 'tel:')]")
@@ -107,16 +89,10 @@ def update_gui(page_num=None):
     for num in page_numbers:
         print(f"Fetching data from page {num}")                                   # print statement to check if the program hangs fetching a certain page
         page_url = f"https://www.epunkt.com/team/p{num}"
-<<<<<<< HEAD
-        profiles_data += scrape_main_page(driver, page_url)
-        for profile in profiles_data:
-            profile.update(scrape_profile_page(driver, profile['Profile Link']))  # Update with email and phone
-=======
         page_data = scrape_main_page(driver, page_url)  # Use a temporary list to store the current page data
         for profile in page_data:
             profile.update(scrape_profile_page(driver, profile['Profile Link']))
         profiles_data += page_data  # Merge the current page data into the main profiles_data list
->>>>>>> 1a09e3a1b7db0d1e6a1ac1056c1752b6e067b112
     print("Data fetching complete")
     update_treeview()
     driver.quit
@@ -177,13 +153,6 @@ def copy_all():
     pyperclip.copy(str(profiles_data))
     messagebox.showinfo('Copy Successful', 'All profiles copied to clipboard!')
 
-<<<<<<< HEAD
-# Initialize Selenium WebDriver
-options = Options()
-options.headless = True
-options.add_argument("--headless")  # Add this line to run the browser in headless mode
-driver = webdriver.Chrome(options=options)
-=======
 # Function to sort the Treeview column
 def sort_column(col):
     global profiles_data
@@ -194,7 +163,6 @@ def sort_column(col):
 # Initialize customtkinter GUI
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("green")
->>>>>>> 1a09e3a1b7db0d1e6a1ac1056c1752b6e067b112
 
 root = ctk.CTk()
 root.title("Scraped Profiles")
@@ -228,12 +196,6 @@ page_number_entry.pack(pady=5)
 
 # Create Treeview to display scraped data using ttk
 columns = ('Name', 'Job Title', 'Profile Link', 'Email', 'Phone Number')
-<<<<<<< HEAD
-tree = ttk.Treeview(root, columns=columns, show='headings')
-for col in columns:
-    tree.heading(col, text=col)
-tree.pack(fill='both', expand=True)
-=======
 tree = ttk.Treeview(root, columns=columns, show='headings', style="Treeview")
 sort_orders = {col: False for col in columns}  # Dictionary to keep track of sort orders
 
@@ -247,7 +209,6 @@ button_frame.pack(pady=10)
 
 # Uniform button style
 button_style = {"corner_radius": 10, "fg_color": "#1FA557", "hover_color": "#14702B", "text_color": "#ffffff"}
->>>>>>> 1a09e3a1b7db0d1e6a1ac1056c1752b6e067b112
 
 # Button to update and display scraped data
 update_button = ctk.CTkButton(button_frame, text="Gimme the Juice", command=lambda: update_gui(page_number_entry.get()), **button_style)
