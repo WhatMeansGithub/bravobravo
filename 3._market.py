@@ -100,8 +100,8 @@ def update_treeview(tree, headers, rows):
 
 root = ttk.Window(themename = 'darkly')                           # Creating a tkinter window and customising it
 root.title("Market Shares")                                       # Setting the title of the window
-root.geometry("1200x800")                                         # Setting the fixed size of the window
 root.resizable(False, False)                                      # Disabling window resizing
+root.geometry("1200x800+400+150")                                 # Setting the fixed size and position of the window
 
 buttons = [                                                       # List of buttons to display on the GUI        
     ("Indices", get_indices),                                     # Each button has a name and a function to call when clicked
@@ -121,18 +121,28 @@ for text, command in buttons:                                     # Placing the 
 button_frame.pack(pady=(20,0))                                    # Displaying the frame widget
 
 treeview_frame = ttk.Frame(root)                                  # Create a frame widget to hold the treeview and customize it
-treeview_frame.pack(side='left', padx=(315,7), pady=7, fill='both', expand=True, ipadx=7, ipady=7)  # Place the frame widget on the right side of the window
-tree = ttk.Treeview(treeview_frame, show='headings', style="Treeview")
-tree.pack(fill='both', expand=True)
+treeview_frame.pack(padx=(315,7), pady=7, fill='both', expand=True, ipadx=7, ipady=7)   # Place the frame widget on the right side of the window
+tree = ttk.Treeview(treeview_frame, show='headings', style="Treeview")                  # Create a treeview widget with headings
 scrollbar = ttk.Scrollbar(treeview_frame, orient='vertical', command=tree.yview)  # Create a scrollbar widget
-scrollbar.pack(side='right', anchor='ne', fill='y')                             # Place the scrollbar on the right side of the treeview
+scrollbar.pack(side='right', fill='y', )                          # Pack the scrollbar on the left side of the frame
+tree.config(yscrollcommand=scrollbar.set)                         # Configure the treeview to use the scrollbar
+tree.pack(side='left', fill='both', expand=True)                  # Pack the treeview on the right side of the frame
+
 
 buttons = ["Back", "Employees", "Music", "Exit"]                  # List of navigational buttons to display on the GUI
 button_frame = ttk.Frame(root)                                    # Creating a frame widget to hold the buttons and customize them
 button_frame.place(relx=0, rely=0.5, anchor='w')                  # Placing the frame widget on the left side of the window
 for text in buttons:                                              # Placing the buttons in the button frame widget and customizing it
-    button = ctk.CTkButton(button_frame, text=text, width=250, height=100, anchor='center')  # 
-    button.pack(padx=32, pady=(52)) 
+    button = ctk.CTkButton(button_frame, text=text, width=290, height=100, anchor='center')  # 
+    button.pack(padx=12, pady=(10)) 
+    if text == "Back":
+        button.configure(command=lambda: os.system('python 2._main.py'))
+    elif text == "Employees":
+        button.configure(command=lambda: os.system('python 1._employees.py'))
+    elif text == "Music":
+        button.configure(command=lambda: os.system('python 4._music_player_Nessa.py'))
+    elif text == "Exit":
+        button.configure(command=lambda: root.destroy())
 
 root.mainloop()
         
