@@ -262,7 +262,7 @@ def download_and_convert(url):
 # Main application window
 root = customtkinter.CTk()
 root.title("Music Application")
-root.geometry("400x200")
+root.geometry("1200x800+400+150")                                 # Setting the fixed size and position of the window
 
 search_label = customtkinter.CTkLabel(root, text="Search Music Online:")
 search_label.pack(pady=10)

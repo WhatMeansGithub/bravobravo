@@ -9,7 +9,7 @@ root = ctk.CTk()  # Creating a tkinter window
 root.wm_attributes('-alpha', 0.9)  # Set window transparency to 90%
 
 root.title("The CEO Program")  # Setting the title of the window
-root.geometry("1200x800")  # Setting the fixed size of the window
+root.geometry("1200x800+400+150")                                 # Setting the fixed size and position of the window
 root.resizable(False, False)  # Disabling window resizing
 
 
