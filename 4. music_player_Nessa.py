@@ -222,17 +222,16 @@ youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
 # Function to search music online using YouTube API
 def search_music_online():
     search_query = search_entry.get()
-    if search_query:
-        request = youtube.search().list(
+    request = youtube.search().list(
             part="snippet",
             maxResults=10,
             q=search_query,
             type="video",
             videoCategoryId="10"  # Music category
         )
-        response = request.execute()
-        search_results = [(item['snippet']['title'], f"https://www.youtube.com/watch?v={item['id']['videoId']}") for item in response['items']]
-        display_search_results(search_results)
+    response = request.execute()
+    search_results = [(item['snippet']['title'], f"https://www.youtube.com/watch?v={item['id']['videoId']}") for item in response['items']]
+    display_search_results(search_results)
 
 # Function to display search results
 def display_search_results(results):
@@ -282,20 +281,20 @@ download_button.pack(pady=10)
 open_music_player_button = customtkinter.CTkButton(root, text="Open Music Player", command=open_music_player)
 open_music_player_button.pack(pady=10)
 
-root.mainloop()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #root.mainloop()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+root.mainloop()
