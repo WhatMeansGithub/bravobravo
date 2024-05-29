@@ -136,9 +136,9 @@ for text in buttons:                                              # Placing the 
     button = ctk.CTkButton(button_frame, text=text, width=290, height=100, anchor='center')  # 
     button.pack(padx=12, pady=(10)) 
     if text == "Back":
-        button.configure(command=lambda: os.system('python 2._main.py'))
+        button.configure(command=lambda: os.system('python 1._main_page.py'))
     elif text == "Employees":
-        button.configure(command=lambda: os.system('python 1._employees.py'))
+        button.configure(command=lambda: os.system('python 2._employees.py'))
     elif text == "Music":
         button.configure(command=lambda: os.system('python 4._music_player_Nessa.py'))
     elif text == "Exit":
