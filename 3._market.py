@@ -96,6 +96,11 @@ def update_treeview(tree, headers, rows):
     for i, row in enumerate(rows, start=1):                       # Insert new rows / Start the index from 1
         tree.insert("", "end", values=[i] + row)                  # Add the index as the first value in each row
 
+def clear_treeview(tree):
+    tree.delete(*tree.get_children())
+    tree["columns"] = []  # Clear the column headers
+    tree.heading("#0", text="")  # Clear the heading of the first column
+
 # MAIN CODE ============================================================================================================
 
 root = ttk.Window(themename = 'darkly')                           # Creating a tkinter window and customising it
@@ -132,13 +137,15 @@ tree.pack(side='left', fill='both', expand=True)                  # Pack the tre
 buttons = ["Back", "Clear / Refresh", "Employees", "Music", "Exit"]                  # List of navigational buttons to display on the GUI
 button_frame = ttk.Frame(root)                                    # Creating a frame widget to hold the buttons and customize them
 button_frame.place(relx=0.13, rely=0, anchor='n')                  # Placing the frame widget on the left side of the window
+
+
 for text in buttons:                                              # Placing the buttons in the button frame widget and customizing it
     button = ctk.CTkButton(button_frame, text=text, width=290, height=100, anchor='center')  # 
     button.pack(padx=14, pady=(20,0)) 
     if text == "Back":
         button.configure(command=lambda: os.system('python 1._main_page.py'))
     elif text == "Clear / Refresh":
-        button.configure(command=lambda: [root.destroy(), os.system('python /home/roger/Desktop/bravobravo/3._market.py')])
+        button.configure(command=lambda: clear_treeview(tree))
     elif text == "Employees":
         button.configure(command=lambda: os.system('python 2._employees.py'))
     elif text == "Music":
