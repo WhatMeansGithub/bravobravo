@@ -93,7 +93,7 @@ def update_treeview(tree, headers, rows):
 
     for header in headers:
         tree.heading(header, text=header)
-        tree.column(header, anchor='center', width=120, minwidth=120, stretch=True)
+        tree.column(header, anchor='center', width=100, minwidth=50, stretch=True)
     for i, row in enumerate(rows, start=1):
         tree.insert("", "end", values=[i] + row)                   # Add the index as the first value in each row
 
@@ -163,7 +163,7 @@ def show_market_buttons():
     back_button.pack(padx=20, pady=(320, 20))
     back_button.configure(command=lambda: reset_main_buttons())
 
-def reset_main_buttons():
+def show_main_buttons():
     for widget in button_frame.winfo_children():
         widget.destroy()
     hide_treeview()
@@ -171,7 +171,7 @@ def reset_main_buttons():
     main_buttons = ["Employees", "Market", "Music", "Exit"]
     for text in main_buttons:
         button = ctk.CTkButton(button_frame, text=text, width=290, height=100, anchor='center', font=('Helvetica', 30, 'bold'), fg_color='#294f73', hover_color='#1d8ab5')  # 
-        button.pack(padx=20, pady=50)
+        button.pack(padx=20, pady=(20, 50))
         if text == "Employees":
             button.configure(command=lambda: os.system('python 2._employees.py'))
         elif text == "Market":
@@ -251,5 +251,5 @@ def show_transaction_buttons():
     sell_button = ctk.CTkButton(transaction_frame, text="SELL", width=100, height=50, fg_color="red", command=sell_stocks)
     sell_button.pack(side='left', padx=5, pady=5)
 
-reset_main_buttons()
+show_main_buttons()
 root.mainloop()
