@@ -10,6 +10,7 @@ import requests                         # Importing requests to get HTML content
 from bs4 import BeautifulSoup           # Importing BeautifulSoup to parse HTML content
 import pandas as pd                     # Importing pandas for data manipulation and file saving
 
+# MARKET CODE =============================================================================================================
 
 def display_web_tables(soup, table_class, function_name):
     tables = soup.find_all('table', class_=table_class)             # Find all tables with the specified class
@@ -102,38 +103,8 @@ def clear_treeview(tree):
     tree["columns"] = []  # Clear the column headers
     tree.heading("#0", text="")  # Clear the heading of the first column
 
-root = ttk.Window(themename = 'darkly')                             # Creating a tkinter window and customising it
-
-root.wm_attributes('-alpha', 1)
-root.title("The CEO Program")
-root.geometry("1200x800+400+150")
-root.resizable(False, False)
-
-background_image = 'program files/main_page_background.jpg'
-img = Image.open(background_image)
-img = ImageTk.PhotoImage(img)
-img_label = ttk.Label(root, image=img)
-img_label.place(x=0, y=0, relwidth=1, relheight=1)
-
-
-
-
-
-
-button_frame = ttk.Frame(root)
-button_frame.place(relx=0, rely=0.5, anchor='w')
-
-treeview_frame = ttk.Frame(root)
-treeview_frame.pack(padx=(300, 7), pady=7, fill='both', expand=True)
-tree = ttk.Treeview(treeview_frame, show='headings', style="Treeview")
-scrollbar = ttk.Scrollbar(treeview_frame, orient='vertical', command=tree.yview)
-scrollbar.pack(side='right', fill='y')
-tree.config(yscrollcommand=scrollbar.set)
-tree.pack(side='left', fill='both', expand=True)
-treeview_frame.pack_forget()  # Initially hide the Treeview frame
-
 def show_treeview():
-    treeview_frame.pack(padx=(330, 0), pady=0, fill='both', expand=True)
+    treeview_frame.pack(padx=(35, 0), pady=0, fill='both', expand=True)
 
 def hide_treeview():
     treeview_frame.pack_forget()
@@ -155,47 +126,15 @@ def show_market_buttons():
         widget.destroy()
 
     for text, command in market_buttons:
-        button = ctk.CTkButton(button_frame, text=text, width=290, height=30, anchor='right', font=('Helvetica', 18, 'bold'))
-        button.pack(padx=20, ipady=(5), pady=(5, 0))
+        button = ctk.CTkButton(button_frame, text=text, width=290, height=25, anchor='right', font=('Helvetica', 18, 'bold'))
+        button.pack(padx=20, ipady=(5), pady=(10, 0))
         button.configure(command=lambda cmd=command: [show_treeview(), cmd()])
 
     back_button = ctk.CTkButton(button_frame, text="Main Menu", width=290, height=100, anchor='right', font=('Helvetica', 30, 'bold'), fg_color='#294f73', hover_color='#1d8ab5')
     back_button.pack(padx=20, pady=(320, 20))
-    back_button.configure(command=lambda: reset_main_buttons())
+    back_button.configure(command=lambda: show_main_buttons())
 
-def show_main_buttons():
-    for widget in button_frame.winfo_children():
-        widget.destroy()
-    hide_treeview()
-
-    main_buttons = ["Employees", "Market", "Music", "Exit"]
-    for text in main_buttons:
-        button = ctk.CTkButton(button_frame, text=text, width=290, height=100, anchor='center', font=('Helvetica', 30, 'bold'), fg_color='#294f73', hover_color='#1d8ab5')  # 
-        button.pack(padx=20, pady=(20, 50))
-        if text == "Employees":
-            button.configure(command=lambda: os.system('python 2._employees.py'))
-        elif text == "Market":
-            button.configure(command=lambda: show_market_buttons())
-        elif text == "Music":
-            button.configure(command=lambda: os.system('python 4._music_player_Nessa.py'))
-        elif text == "Exit":
-            button.configure(command=lambda: root.destroy())
-
-# Stock data file
-stock_data_file = 'stock_data.json'
-
-# Initialize stock data
-if os.path.exists(stock_data_file):
-    with open(stock_data_file, 'r') as file:
-        stock_data = json.load(file)
-else:
-    stock_data = {}
-
-# Add BUY and SELL buttons and search bar
-transaction_frame = ttk.Frame(root)
-transaction_frame.pack(pady=(0, 20))
-
-def save_stock_data():
+def save_stock_data(stock_data):
     market_files_dir = 'market files'
     if not os.path.exists(market_files_dir):
         os.makedirs(market_files_dir)
@@ -204,6 +143,13 @@ def save_stock_data():
         json.dump(stock_data, file)
 
 def show_transaction_buttons():
+    stock_data_file = 'stock_data.json'
+    if os.path.exists(stock_data_file):
+        with open(stock_data_file, 'r') as file:
+            stock_data = json.load(file)
+    else:
+        stock_data = {}
+
     def buy_stocks():
         try:
             amount = int(search_bar.get())
@@ -214,7 +160,7 @@ def show_transaction_buttons():
                     if stock_name not in stock_data:
                         stock_data[stock_name] = 0
                     stock_data[stock_name] += amount
-                save_stock_data()
+                save_stock_data(stock_data)
                 messagebox.showinfo("Transaction Successful", f"Bought {amount} of each selected stock")
             else:
                 messagebox.showwarning("No Selection", "Please select a stock to buy.")
@@ -241,15 +187,66 @@ def show_transaction_buttons():
         except ValueError:
             messagebox.showerror("Invalid Input", "Please enter a valid number.")
 
-    search_bar = ttk.Entry(transaction_frame)
-    search_bar.pack(side='bottom', padx=5, pady=(0,5), fill='x')
+    transaction_frame = ttk.Frame(root)
+    transaction_frame.place(relx=0, rely=0.5)
+
+    search_bar = ttk.Entry(transaction_frame, width=20, font=('Helvetica', 15))
+    search_bar.pack(side='bottom', padx=(20,0), fill='x')
     search_bar.insert(0, "Enter number")
 
-    buy_button = ctk.CTkButton(transaction_frame, text="BUY", width=100, height=50, fg_color="green", command=buy_stocks)
-    buy_button.pack(side='left', padx=(5,0), pady=5)
+    buy_button = ctk.CTkButton(transaction_frame, text="BUY", font=('Helvetica', 20), width=140, height=50, fg_color='#137501', command=buy_stocks)
+    buy_button.pack(side='left', padx=(20,5), pady=(0,10))
 
-    sell_button = ctk.CTkButton(transaction_frame, text="SELL", width=100, height=50, fg_color="red", command=sell_stocks)
-    sell_button.pack(side='left', padx=5, pady=5)
+    sell_button = ctk.CTkButton(transaction_frame, text="SELL", font=('Helvetica', 20), width=140, height=50, fg_color="#750e01", command=sell_stocks)
+    sell_button.pack(padx=(5,0), pady=(0,10))
+
+# MAIN PAGE CODE ==========================================================================================================
+
+def show_main_buttons():
+    for widget in button_frame.winfo_children():
+        widget.destroy()
+    hide_treeview()
+
+    main_buttons = ["Employees", "Market", "Music", "Exit"]
+    for text in main_buttons:
+        button = ctk.CTkButton(button_frame, text=text, width=290, height=100, anchor='center', font=('Helvetica', 30, 'bold'), fg_color='#294f73', hover_color='#1d8ab5')
+
+        button.pack(padx=20, pady=(20))
+        if text == "Employees":
+            button.configure(command=lambda: os.system('python 2._employees.py'))
+        elif text == "Market":
+            button.configure(command=lambda: show_market_buttons())
+            button.pack(pady=(0, 0))
+        elif text == "Music":
+            button.configure(command=lambda: os.system('python 4._music_player_Nessa.py'))
+        elif text == "Exit":
+            button.configure(command=lambda: root.destroy())
+            button.pack(padx=20, pady=(0,320))
+
+root = ttk.Window(themename = 'darkly')                             # Creating a tkinter window and customising it
+
+root.wm_attributes('-alpha', 1)
+root.title("The CEO Program")
+root.geometry("1200x800+400+150")
+root.resizable(False, False)
+
+background_image = 'program files/main_page_background.jpg'
+img = Image.open(background_image)
+img = ImageTk.PhotoImage(img)
+img_label = ttk.Label(root, image=img)
+img_label.place(x=0, y=0, relwidth=1, relheight=1)
+
+button_frame = ttk.Frame(root)
+button_frame.place(relx=0, rely=0.5, anchor='w')
+
+treeview_frame = ttk.Frame(root)
+treeview_frame.pack(padx=(300, 7), pady=7, fill='both', expand=True)
+tree = ttk.Treeview(treeview_frame, show='headings', style="Treeview")
+scrollbar = ttk.Scrollbar(treeview_frame, orient='vertical', command=tree.yview)
+scrollbar.pack(side='right', fill='y')
+tree.config(yscrollcommand=scrollbar.set)
+tree.pack(side='left', fill='both', expand=True)
+treeview_frame.pack_forget()  # Initially hide the Treeview frame
 
 show_main_buttons()
 root.mainloop()
