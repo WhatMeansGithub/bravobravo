@@ -12,6 +12,8 @@ import pandas as pd                     # Importing pandas for data manipulation
 
 # MARKET CODE =============================================================================================================
 
+transaction_frame = None  # Define the "transaction_frame" variable
+
 def display_web_tables(soup, table_class, function_name):
     tables = soup.find_all('table', class_=table_class)             # Find all tables with the specified class
     if tables:                                                      # If at least one table is found
@@ -29,12 +31,10 @@ def display_web_tables(soup, table_class, function_name):
             file_name = f'{function_name}_{i+1}.csv'                # Save DataFrame to CSV file in the 'market' folder
             file_path = os.path.join('market files', file_name)     # Create the file path
             df.to_csv(file_path, index=False, mode='w')             # Save the DataFrame to the file path
-            try:                                                    # using try and except because Markus said so
-                print(df)                                               # Display DataFrame
-                combined_string += df.to_string() + "\n\n"              # Append the string representation of the DataFrame to the combined string
-                update_treeview(tree, headers, rows)
-            except:
-                print("Error displaying the table.")
+            print(df)                                               # Display DataFrame
+            combined_string += df.to_string() + "\n\n"              # Append the string representation of the DataFrame to the combined string
+            update_treeview(tree, headers, rows)
+            print("Error displaying the table.")
     else:
         print("No table found with the specified class.")  
 
@@ -104,45 +104,14 @@ def clear_treeview(tree):
     tree.heading("#0", text="")  # Clear the heading of the first column
 
 def show_treeview():
-    treeview_frame.pack(padx=(35, 0), pady=0, fill='both', expand=True)
+    treeview_frame.pack(padx=(330, 0), pady=0, fill='both', expand=True)
 
-def hide_treeview():
-    treeview_frame.pack_forget()
+def hide_transaction_frame():
+    if transaction_frame.winfo_ismapped():
+        transaction_frame.place_forget()
 
 def show_market_buttons():
-    show_transaction_buttons()
-
-    market_buttons = [
-        ("Indices", get_indices),
-        ("Trending Stocks", get_trending_stocks),
-        ("Commodity Futures", get_commodity_futures),
-        ("Exchange Rates", get_exchange_rates),
-        ("ETFs", get_etfs),
-        ("Government Bonds", get_government_bonds),
-        ("Funds", get_funds),
-        ("Cryptocurrencies", get_cryptocurrencies)]
-
-    for widget in button_frame.winfo_children():
-        widget.destroy()
-
-    for text, command in market_buttons:
-        button = ctk.CTkButton(button_frame, text=text, width=290, height=25, anchor='right', font=('Helvetica', 18, 'bold'))
-        button.pack(padx=20, ipady=(5), pady=(10, 0))
-        button.configure(command=lambda cmd=command: [show_treeview(), cmd()])
-
-    back_button = ctk.CTkButton(button_frame, text="Main Menu", width=290, height=100, anchor='right', font=('Helvetica', 30, 'bold'), fg_color='#294f73', hover_color='#1d8ab5')
-    back_button.pack(padx=20, pady=(320, 20))
-    back_button.configure(command=lambda: show_main_buttons())
-
-def save_stock_data(stock_data):
-    market_files_dir = 'market files'
-    if not os.path.exists(market_files_dir):
-        os.makedirs(market_files_dir)
-    stock_data_file = os.path.join(market_files_dir, 'owned_stocks.json')
-    with open(stock_data_file, 'w') as file:
-        json.dump(stock_data, file)
-
-def show_transaction_buttons():
+    show_treeview()
     stock_data_file = 'stock_data.json'
     if os.path.exists(stock_data_file):
         with open(stock_data_file, 'r') as file:
@@ -150,6 +119,13 @@ def show_transaction_buttons():
     else:
         stock_data = {}
 
+    def save_stock_data(stock_data):
+        market_files_dir = 'market files'
+        if not os.path.exists(market_files_dir):
+            os.makedirs(market_files_dir)
+        stock_data_file = os.path.join(market_files_dir, 'owned_stocks.json')
+        with open(stock_data_file, 'w') as file:
+            json.dump(stock_data, file)
     def buy_stocks():
         try:
             amount = int(search_bar.get())
@@ -187,25 +163,59 @@ def show_transaction_buttons():
         except ValueError:
             messagebox.showerror("Invalid Input", "Please enter a valid number.")
 
+    global transaction_frame
+    if transaction_frame is not None:
+        transaction_frame.place_forget()
+
     transaction_frame = ttk.Frame(root)
-    transaction_frame.place(relx=0, rely=0.5)
+    transaction_frame.place(relx=0, rely=0.461)
 
     search_bar = ttk.Entry(transaction_frame, width=20, font=('Helvetica', 15))
     search_bar.pack(side='bottom', padx=(20,0), fill='x')
     search_bar.insert(0, "Enter number")
 
-    buy_button = ctk.CTkButton(transaction_frame, text="BUY", font=('Helvetica', 20), width=140, height=50, fg_color='#137501', command=buy_stocks)
+    buy_button = ctk.CTkButton(transaction_frame, text="BUY", font=('Helvetica', 30, 'bold'), width=140, height=50, fg_color='#137501', hover_color='#39c146', command=buy_stocks)
     buy_button.pack(side='left', padx=(20,5), pady=(0,10))
 
-    sell_button = ctk.CTkButton(transaction_frame, text="SELL", font=('Helvetica', 20), width=140, height=50, fg_color="#750e01", command=sell_stocks)
+    sell_button = ctk.CTkButton(transaction_frame, text="SELL", font=('Helvetica', 30, 'bold'), width=140, height=50, fg_color="#750e01",hover_color='#e05c5c', command=sell_stocks)
     sell_button.pack(padx=(5,0), pady=(0,10))
+
+    market_buttons = [
+        ("Indices", get_indices),
+        ("Trending Stocks", get_trending_stocks),
+        ("Commodity Futures", get_commodity_futures),
+        ("Exchange Rates", get_exchange_rates),
+        ("ETFs", get_etfs),
+        ("Government Bonds", get_government_bonds),
+        ("Funds", get_funds),
+        ("Cryptocurrencies", get_cryptocurrencies)]
+
+    for widget in button_frame.winfo_children():
+        widget.destroy()
+
+    for text, command in market_buttons:
+        button = ctk.CTkButton(button_frame, text=text, width=290, height=25, anchor='right', font=('Helvetica', 18, 'bold'))
+        button.pack(padx=20, ipady=(5), pady=(10, 0))
+        button.configure(command=lambda cmd=command: [show_treeview(), cmd()])
+
+    refresh_button = ctk.CTkButton(button_frame, text="Refresh", width=290, height=100, anchor='right', font=('Helvetica', 40, 'bold'), fg_color='#294f73', hover_color='#1d8ab5')
+    refresh_button.pack(padx=20, pady=(210,10))
+    refresh_button.configure(command=lambda: clear_treeview(tree))
+
+    back_button = ctk.CTkButton(button_frame, text="Main Menu", width=290, height=100, anchor='right', font=('Helvetica', 40, 'bold'), fg_color='#294f73', hover_color='#1d8ab5')
+    back_button.pack(padx=20, pady=(0, 20))
+    back_button.configure(command=lambda: return_to_main_page())
+
+
 
 # MAIN PAGE CODE ==========================================================================================================
 
-def show_main_buttons():
+def return_to_main_page():
+    treeview_frame.pack_forget()
     for widget in button_frame.winfo_children():
         widget.destroy()
-    hide_treeview()
+    if transaction_frame is not None:
+        transaction_frame.place_forget()
 
     main_buttons = ["Employees", "Market", "Music", "Exit"]
     for text in main_buttons:
@@ -248,5 +258,5 @@ tree.config(yscrollcommand=scrollbar.set)
 tree.pack(side='left', fill='both', expand=True)
 treeview_frame.pack_forget()  # Initially hide the Treeview frame
 
-show_main_buttons()
+return_to_main_page()
 root.mainloop()
