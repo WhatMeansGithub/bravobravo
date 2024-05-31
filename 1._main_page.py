@@ -1,3 +1,5 @@
+import json
+from tkinter import messagebox
 import tkinter as tk                    # Importing tkinter as tk to create the GUI
 import ttkbootstrap as ttk              # Does the same as 'from tkinter import ttk' but lets us customize the GUI even more with themes
 from tkinter import font as tkFont      # Importing font as tkFont to customize the font of the GUI
@@ -131,14 +133,14 @@ tree.pack(side='left', fill='both', expand=True)
 treeview_frame.pack_forget()  # Initially hide the Treeview frame
 
 def show_treeview():
-    treeview_frame.pack(padx=(300, 7), pady=7, fill='both', expand=True)
+    treeview_frame.pack(padx=(330, 0), pady=0, fill='both', expand=True)
 
 def hide_treeview():
     treeview_frame.pack_forget()
 
-
-
 def show_market_buttons():
+    show_transaction_buttons()
+
     market_buttons = [
         ("Indices", get_indices),
         ("Trending Stocks", get_trending_stocks),
@@ -147,21 +149,18 @@ def show_market_buttons():
         ("ETFs", get_etfs),
         ("Government Bonds", get_government_bonds),
         ("Funds", get_funds),
-        ("Cryptocurrencies", get_cryptocurrencies)
-    ]  
+        ("Cryptocurrencies", get_cryptocurrencies)]
 
     for widget in button_frame.winfo_children():
         widget.destroy()
 
     for text, command in market_buttons:
-        button = ctk.CTkButton(button_frame, text=text, width=250, height=30, anchor='right')
-        button.pack(padx=20, pady=(10))
+        button = ctk.CTkButton(button_frame, text=text, width=290, height=30, anchor='right', font=('Helvetica', 18, 'bold'))
+        button.pack(padx=20, ipady=(5), pady=(5, 0))
         button.configure(command=lambda cmd=command: [show_treeview(), cmd()])
 
-    
-
-    back_button = ctk.CTkButton(button_frame, text="Main Menu", width=250, height=100, anchor='right', font=('Helvetica', 30, 'bold'), fg_color='#294f73', hover_color='#1d8ab5')
-    back_button.pack(padx=20, pady=(250, 20))
+    back_button = ctk.CTkButton(button_frame, text="Main Menu", width=290, height=100, anchor='right', font=('Helvetica', 30, 'bold'), fg_color='#294f73', hover_color='#1d8ab5')
+    back_button.pack(padx=20, pady=(320, 20))
     back_button.configure(command=lambda: reset_main_buttons())
 
 def reset_main_buttons():
@@ -181,6 +180,76 @@ def reset_main_buttons():
             button.configure(command=lambda: os.system('python 4._music_player_Nessa.py'))
         elif text == "Exit":
             button.configure(command=lambda: root.destroy())
+
+# Stock data file
+stock_data_file = 'stock_data.json'
+
+# Initialize stock data
+if os.path.exists(stock_data_file):
+    with open(stock_data_file, 'r') as file:
+        stock_data = json.load(file)
+else:
+    stock_data = {}
+
+# Add BUY and SELL buttons and search bar
+transaction_frame = ttk.Frame(root)
+transaction_frame.pack(pady=(0, 20))
+
+def save_stock_data():
+    market_files_dir = 'market files'
+    if not os.path.exists(market_files_dir):
+        os.makedirs(market_files_dir)
+    stock_data_file = os.path.join(market_files_dir, 'owned_stocks.json')
+    with open(stock_data_file, 'w') as file:
+        json.dump(stock_data, file)
+
+def show_transaction_buttons():
+    def buy_stocks():
+        try:
+            amount = int(search_bar.get())
+            selected_items = tree.selection()
+            if selected_items:
+                for item in selected_items:
+                    stock_name = tree.item(item, 'values')[0]
+                    if stock_name not in stock_data:
+                        stock_data[stock_name] = 0
+                    stock_data[stock_name] += amount
+                save_stock_data()
+                messagebox.showinfo("Transaction Successful", f"Bought {amount} of each selected stock")
+            else:
+                messagebox.showwarning("No Selection", "Please select a stock to buy.")
+        except ValueError:
+            messagebox.showerror("Invalid Input", "Please enter a valid number.")
+ 
+    def sell_stocks():
+        try:
+            amount = int(search_bar.get())
+            selected_items = tree.selection()
+            if selected_items:
+                for item in selected_items:
+                    stock_name = tree.item(item, 'values')[0]
+                    if stock_name in stock_data:
+                        stock_data[stock_name] -= amount
+                        if stock_data[stock_name] <= 0:
+                            del stock_data[stock_name]
+                            messagebox.showinfo("Transaction Successful", f"All stocks from {stock_name} are sold.")
+                        else:
+                            messagebox.showinfo("Transaction Successful", f"Sold {amount} of {stock_name}")
+                save_stock_data()
+            else:
+                messagebox.showwarning("No Selection", "Please select a stock to sell.")
+        except ValueError:
+            messagebox.showerror("Invalid Input", "Please enter a valid number.")
+
+    search_bar = ttk.Entry(transaction_frame)
+    search_bar.pack(side='bottom', padx=5, pady=(0,5), fill='x')
+    search_bar.insert(0, "Enter number")
+
+    buy_button = ctk.CTkButton(transaction_frame, text="BUY", width=100, height=50, fg_color="green", command=buy_stocks)
+    buy_button.pack(side='left', padx=(5,0), pady=5)
+
+    sell_button = ctk.CTkButton(transaction_frame, text="SELL", width=100, height=50, fg_color="red", command=sell_stocks)
+    sell_button.pack(side='left', padx=5, pady=5)
 
 reset_main_buttons()
 root.mainloop()
