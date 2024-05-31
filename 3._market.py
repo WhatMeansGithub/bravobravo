@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup  # Importing BeautifulSoup to parse HTML content
-import customtkinter as ctk    # Importing customtkinter to customise the GUI more
-import ttkbootstrap as ttk     # Does the same as 'from tkinter import ttk' but lets us customize the GUI even more with themes
+import customtkinter as ctk    # Importing customtkinter to customise the GUI more + creates custom buttons
+import ttkbootstrap as ttk     # Does the same as 'from tkinter import ttk' but lets us customize the GUI even more with themes + better button styles
 import requests                # Importing requests to get HTML content from a website
 import pandas as pd            # Importing pandas for data manipulation and file saving
 import os                      # Importing os to use the clear function from the os and create a folder to store the exported files
@@ -93,8 +93,8 @@ def update_treeview(tree, headers, rows):
     for header in headers:
         tree.heading(header, text=header)
         tree.column(header, anchor='center', width=120, minwidth=120 , stretch=True) 
-    for i, row in enumerate(rows, start=1):                       # Insert new rows / Start the index from 1
-        tree.insert("", "end", values=[i] + row)                  # Add the index as the first value in each row
+    for i, row in enumerate(rows, start=1):                         # Insert new rows / Start the index from 1
+        tree.insert("", "end", values=[i] + row)                    # Add the index as the first value in each row
 
 def clear_treeview(tree):
     tree.delete(*tree.get_children())
@@ -103,13 +103,17 @@ def clear_treeview(tree):
 
 # MAIN CODE ============================================================================================================
 
-root = ttk.Window(themename = 'darkly')                           # Creating a tkinter window and customising it
-root.title("Market Shares")                                       # Setting the title of the window
-root.resizable(False, False)                                      # Disabling window resizing
-root.geometry("1200x800+400+150")                                 # Setting the fixed size and position of the window
+market = ttk.Window(themename = 'darkly')                             # Creating a tkinter window and customising it
+market.title("Market Shares")                                         # Setting the title of the window
+market.resizable(False, False)                                        # Disabling window resizing
+market.geometry("1200x800+400+150")                                   # Setting the fixed size and position of the window
 
-buttons = [                                                       # List of buttons to display on the GUI        
-    ("Indices", get_indices),                                     # Each button has a name and a function to call when clicked
+style = ttk.Style()
+style.configure('TButton', font=('Helvetica', 11), padding=10)
+style.configure('Custom.TButton', background='#1e90ff', foreground='white', font=('Helvetica', 11, 'bold'))
+
+buttons = [                                                         # List of buttons to display on the GUI        
+    ("Indices", get_indices),                                       # Each button has a name and a function to call when clicked
     ("Trending Stocks", get_trending_stocks),
     ("Commodity Futures", get_commodity_futures),
     ("Exchange Rates", get_exchange_rates),
@@ -118,40 +122,33 @@ buttons = [                                                       # List of butt
     ("Funds", get_funds),
     ("Cryptocurrencies", get_cryptocurrencies)
 ]
-combined_string = ""                                              # Define the variable "combined_string"
-button_frame = ttk.Frame(root)                                    # Creating a frame widget to hold the buttons and customizing them
-button_frame.pack(anchor='e', padx=7, pady=0)                     # Placing the frame widget on the right side of the window
-for text, command in buttons:                                     # Placing the buttons in the button frame widget and customizing it
-    ttk.Button(button_frame, text=text, command=command).pack(side='left', padx=0) # Create a button with the specified text and command
-button_frame.pack(pady=(20,0))                                    # Displaying the frame widget
 
-treeview_frame = ttk.Frame(root)                                  # Create a frame widget to hold the treeview and customize it
-treeview_frame.pack(padx=(315,7), pady=7, fill='both', expand=True, ipadx=7, ipady=7)   # Place the frame widget on the right side of the window
+button_frame = ttk.Frame(market)                                      # Creating a frame widget to hold the buttons and customizing them
+button_frame.pack(anchor='e', padx=10, pady=(13,0))                      # Placing the frame widget on the right side of the window
+for text, command in buttons:                                       # Placing the buttons in the button frame widget and customizing it
+    ttk.Button(button_frame, text=text, command=command).pack(side='left') # Create a button with the specified text and command
+
+treeview_frame = ttk.Frame(market)                                    # Create a frame widget to hold the treeview and customize it
+treeview_frame.pack(padx=(309,11), fill='both', expand=True, pady=(5,11))   # Place the frame widget on the right side of the window
 tree = ttk.Treeview(treeview_frame, show='headings', style="Treeview")                  # Create a treeview widget with headings
 scrollbar = ttk.Scrollbar(treeview_frame, orient='vertical', command=tree.yview)  # Create a scrollbar widget
-scrollbar.pack(side='right', fill='y', )                          # Pack the scrollbar on the left side of the frame
-tree.config(yscrollcommand=scrollbar.set)                         # Configure the treeview to use the scrollbar
-tree.pack(side='left', fill='both', expand=True)                  # Pack the treeview on the right side of the frame
+scrollbar.pack(side='right', fill='y', )                            # Pack the scrollbar on the left side of the frame
+tree.config(yscrollcommand=scrollbar.set)                           # Configure the treeview to use the scrollbar
+tree.pack(side='left', fill='both', expand=True)                    # Pack the treeview on the right side of the frame
 
+buttons = ["Main Menu", "Clear Screen", "Exit"] # List of navigational buttons to display on the GUI
+button_frame = ttk.Frame(market)                                      # Creating a frame widget to hold the buttons and customize them
+button_frame.place(relx=0.128, rely=0.009, anchor='n')                   # Placing the frame widget on the left side of the window
 
-buttons = ["Back", "Clear / Refresh", "Employees", "Music", "Exit"]                  # List of navigational buttons to display on the GUI
-button_frame = ttk.Frame(root)                                    # Creating a frame widget to hold the buttons and customize them
-button_frame.place(relx=0.13, rely=0, anchor='n')                  # Placing the frame widget on the left side of the window
-
-
-for text in buttons:                                              # Placing the buttons in the button frame widget and customizing it
-    button = ctk.CTkButton(button_frame, text=text, width=290, height=100, anchor='center')  # 
-    button.pack(padx=14, pady=(20,0)) 
-    if text == "Back":
-        button.configure(command=lambda: os.system('python 1._main_page.py'))
-    elif text == "Clear / Refresh":
+for text in buttons:                                                # Placing the buttons in the button frame widget and customizing it
+    button = ctk.CTkButton(button_frame, text=text, width=290, height=100, anchor='center', font=('Helvetica', 30, 'bold'), fg_color='#294f73', hover_color='#1d8ab5')  # 
+    button.pack(padx=5, pady=(6)) 
+    if text == "Main Menu":
+        button.configure(command=lambda: [os.system('python 1._main_page.py')])
+    elif text == "Clear Screen":
         button.configure(command=lambda: clear_treeview(tree))
-    elif text == "Employees":
-        button.configure(command=lambda: os.system('python 2._employees.py'))
-    elif text == "Music":
-        button.configure(command=lambda: os.system('python 4._music_player_Nessa.py'))
     elif text == "Exit":
-        button.configure(command=lambda: root.destroy())
+        button.configure(command=lambda: market.destroy())
 
-root.mainloop()
+market.mainloop()
         

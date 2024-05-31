@@ -104,7 +104,7 @@ def open_music_player():
     root.destroy()  # Close the root window when the music player is opened
     music_player = customtkinter.CTk()
     music_player.title("Vibe Box")
-    music_player.geometry('600x500')
+    music_player.geometry("1200x800+400+150")
 
     # Add background image
     bg_image = Image.open('Nessa/img/3d-music.jpg')
@@ -237,7 +237,7 @@ def search_music_online():
 def display_search_results(results):
     search_results_window = customtkinter.CTkToplevel(root)
     search_results_window.title("Search Results")
-    search_results_window.geometry("400x300")
+    search_results_window.geometry("400x800+400+150")
 
     for idx, (song_name, url) in enumerate(results):
         result_label = customtkinter.CTkLabel(search_results_window, text=song_name)
