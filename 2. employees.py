@@ -99,24 +99,46 @@ def scrape_main_page(page_url):
 
 # Function to scrape data from a profile page
 def scrape_profile_page(profile):
+    if profile['Name'].startswith('Test User'):
+        return profile
+    
     driver = initialize_driver()
     profile_url = profile['Profile Link']
     driver.get(profile_url)
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'a-mailto')))
-    email_elem = driver.find_element(By.CLASS_NAME, 'a-mailto')
-    email = email_elem.get_attribute('href')
-    if email.startswith("mailto:"):
-        email = email.split(":")[1]
-    else:
-        email = email_elem.text.strip()
 
-    # SMTP validation
-    email_valid = verify_email_smtp(email)
+    email = None
+    phone = None
+    email_error = None
+    phone_error = None
 
-    phone_elem = driver.find_element(By.XPATH, "//a[starts-with(@href, 'tel:')]")
-    phone = phone_elem.get_attribute('href').split(":")[1]
+    try:
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'a-mailto')))
+        email_elem = driver.find_element(By.CLASS_NAME, 'a-mailto')
+        email = email_elem.get_attribute('href')
+        if email.startswith("mailto:"):
+            email = email.split(":")[1]
+        else:
+            email = email_elem.text.strip()
+    except Exception as e:
+        email_error = f"finding email for {profile['Name']}: {e}"
+    
+    try:
+        phone_elem = driver.find_element(By.XPATH, "//a[starts-with(@href, 'tel:')]")
+        phone = phone_elem.get_attribute('href').split(":")[1]
+    except Exception as e:
+        phone_error = f"Error finding phone number for {profile['Name']}: {e}"
+
     driver.quit()
-    profile.update({'Email': email, 'Phone Number': phone, 'Email Valid': email_valid})
+    if email:
+        email_valid = verify_email_smtp(email)
+    else:
+        email_valid = False
+
+    profile.update({
+        'Email': email if email else email_error,
+        'Phone Number': phone if phone else phone_error, 
+        'Email Valid': email_valid
+    })
     return profile
     
 
@@ -132,6 +154,14 @@ def export_to_csv(data):
 def update_gui(page_num=None):
     global profiles_data
     profiles_data = []
+
+    test_profiles = [
+        {'Name': 'Test User1', 'Job Title': 'Tester', 'Profile Link': 'https://example.com/profile1', 'Email': 'invalid-email', 'Phone Number': '1234567890'},
+        {'Name': 'Test User2', 'Job Title': 'Tester', 'Profile Link': 'https://example.com/profile2', 'Email': 'invalid@domain', 'Phone Number': '1234567890'},
+        {'Name': 'Test User3', 'Job Title': 'Tester', 'Profile Link': 'https://example.com/profile3', 'Email': 'valid@example.com', 'Phone Number': '1234567890'}
+    ]
+    profiles_data.extend(test_profiles)
+
     if page_num is None or page_num.strip() == "":
         page_numbers = range(1, 12)
     else:
@@ -156,7 +186,13 @@ def update_gui(page_num=None):
 def update_treeview():
     tree.delete(*tree.get_children())
     for profile in profiles_data:
-        item = tree.insert('', 'end', values=(profile['Name'], profile['Job Title'], profile['Profile Link'], profile['Email'], profile['Phone Number']))
+        item = tree.insert('', 'end', values=(
+            profile['Name'],
+            profile['Job Title'],
+            profile['Profile Link'],
+            profile['Email'] if profile['Email'] else 'Email not found', 
+            profile['Phone Number'] if profile['Phone Number'] else 'Phone number not found'
+        ))
         if profile.get('Email Valid', False):
             tree.item(item, tags=('validated',))
 
