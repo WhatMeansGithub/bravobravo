@@ -264,6 +264,9 @@ root = customtkinter.CTk()
 root.title("Music Application")
 root.geometry("1200x800+400+150")                                 # Setting the fixed size and position of the window
 
+
+
+
 search_label = customtkinter.CTkLabel(root, text="Search Music Online:")
 search_label.pack(pady=10)
 search_entry = customtkinter.CTkEntry(root)
