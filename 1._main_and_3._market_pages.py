@@ -264,17 +264,21 @@ def return_to_main_page():
 
     main_buttons = ["Employees", "Market", "Music", "Exit"]
     for text in main_buttons:
-        button = ctk.CTkButton(button_frame, text=text, width=290, height=100, anchor='center', font=('Helvetica', 50, 'bold'), fg_color='#294f73', hover_color='#1d8ab5')
 
-        button.pack(padx=20, pady=(20))
         if text == "Employees":
+            button = ctk.CTkButton(button_frame, text=text, width=290, height=100, anchor='center', font=('Helvetica', 45, 'bold'), fg_color='#174487', hover_color='#5391f5', bg_color='#1d1e1f')
             button.configure(command=lambda: os.system('python 2._employees.py'))
+            button.pack(padx=20, pady=(20,0))
         elif text == "Market":
+            button = ctk.CTkButton(button_frame, text=text, width=290, height=100, anchor='center', font=('Helvetica', 45, 'bold'), fg_color='#0f6961', hover_color='#19d1b9', bg_color='#1d1e1f')
             button.configure(command=lambda: show_market_buttons())
-            button.pack(pady=(0, 0))
+            button.pack(padx=20, pady=(20))
         elif text == "Music":
+            button = ctk.CTkButton(button_frame, text=text, width=290, height=100, anchor='center', font=('Helvetica', 45, 'bold'), fg_color='#268717', hover_color='#59d119', bg_color='#1d1e1f')
             button.configure(command=lambda: os.system('python 4._music_player_Nessa.py'))
+            button.pack(padx=20, pady=(0,20))
         elif text == "Exit":
+            button = ctk.CTkButton(button_frame, text=text, width=290, height=100, anchor='center', font=('Helvetica', 45, 'bold'), fg_color='#8f9110', hover_color='#d1d119', bg_color='#1d1e1f')
             button.configure(command=lambda: root.destroy())
             button.pack(padx=20, pady=(0, 320))
 
