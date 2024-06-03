@@ -111,10 +111,10 @@ def update_treeview(tree, headers, rows):
     tree.delete(*tree.get_children())
     stock_data = load_stock_data(current_table)  # Load current stock data
     tree["columns"] = ["Index", "Stock Count"] + headers  # Add "Index" and "Stock Count" as the first columns
-    tree.heading("Index", text="Index")  # Set the heading for the "Index" column
-    tree.heading("Stock Count", text="Stock Count")  # Set the heading for the "Stock Count" column
-    tree.column("Index", anchor='w', width=50, stretch=False)  # Set the width of the "Index" column and disable stretching
-    tree.column("Stock Count", anchor='center', width=100, stretch=False)  # Set the width of the "Stock Count" column
+    tree.heading("Index", text="#")  # Set the heading for the "Index" column
+    tree.heading("Stock Count", text="Owned")  # Set the heading for the "Stock Count" column
+    tree.column("Index", anchor='w', width=25, stretch=False)  # Set the width of the "Index" column and disable stretching
+    tree.column("Stock Count", anchor='center', width=60, stretch=False)  # Set the width of the "Stock Count" column
 
     for header in headers:
         tree.heading(header, text=header)
