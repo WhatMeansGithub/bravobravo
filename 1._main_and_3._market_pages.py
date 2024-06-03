@@ -1,8 +1,6 @@
 import json
 from tkinter import messagebox
-import tkinter as tk
 import ttkbootstrap as ttk
-from tkinter import font as tkFont
 from PIL import Image, ImageTk
 import customtkinter as ctk
 import os
