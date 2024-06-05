@@ -10,6 +10,8 @@ from mutagen.mp3 import MP3
 from googleapiclient.discovery import build
 from pytube import YouTube
 from moviepy.editor import AudioFileClip
+import random
+from pathlib import Path
 
 # Initialize pygame mixer
 pygame.mixer.init()
@@ -19,6 +21,7 @@ customtkinter.set_appearance_mode("System")  # Modes: system (default), light, d
 customtkinter.set_default_color_theme("green")  # Themes: blue (default), dark-blue, green
 
 # Global variables
+IMG_PATH = Path('/home/dci-student/Desktop/bravobravo/Nessa/img')
 list_of_songs = []
 list_of_covers = []
 n = 0
@@ -31,10 +34,10 @@ def clear_entries(*entries):
 
 # Function to display cover and song name
 def display_cover_and_name(song_index):
-    cover_path = list_of_covers[song_index % len(list_of_covers)]
+    cover_path = random.choice(list_of_covers)
     song_name = os.path.basename(list_of_songs[song_index])
     img = Image.open(cover_path)
-    img = img.resize((250, 250), Image.Resampling.LANCZOS)
+    img = img.resize((400, 370), Image.Resampling.LANCZOS)
     load = ImageTk.PhotoImage(img)
 
     global label1
@@ -108,7 +111,7 @@ def open_music_player():
 
     # Add background image
     bg_image = Image.open('Nessa/img/3d-music.jpg')
-    bg_image = bg_image.resize((600, 500), Image.Resampling.LANCZOS)
+    bg_image = bg_image.resize((1200, 800), Image.Resampling.LANCZOS)
     bg_photo = ImageTk.PhotoImage(bg_image)
 
     bg_label = tk.Label(music_player, image=bg_photo)
@@ -117,7 +120,8 @@ def open_music_player():
 
     # Update global variables
     list_of_songs = [os.path.join('Nessa/music', file) for file in os.listdir('Nessa/music') if file.endswith(".mp3")]
-    list_of_covers = ['Nessa/img/colorful-music-note.jpg', 'Nessa/img/headimg.jpg', 'Nessa/img/beautiful-robotic-woman-listening.jpg', 'Nessa/img/person-listen-music.jpg', 'Nessa/img/music-note.jpg', 'Nessa/img/beautiful-robotic-woman-listening.jpg']
+    list_of_covers = random.choice([str(img) for img in IMG_PATH.iterdir()])
+    import pdb;pdb.set_trace()
     n = 0
 
     
@@ -148,8 +152,6 @@ def open_music_player():
 
     dropdown_button = customtkinter.CTkButton(master=music_player, text="Select Music", command=open_dropdown)
     dropdown_button.place(relx=0.01, rely=0.01, anchor=tk.NW)
-
-   
 
     play_button = customtkinter.CTkButton(master=music_player, text='Play', command=play_music, width=5)
     play_button.place(relx=0.5, rely=0.7, anchor=tk.CENTER)
@@ -264,9 +266,6 @@ root = customtkinter.CTk()
 root.title("Music Application")
 root.geometry("1200x800+400+150")                                 # Setting the fixed size and position of the window
 
-
-
-
 search_label = customtkinter.CTkLabel(root, text="Search Music Online:")
 search_label.pack(pady=10)
 search_entry = customtkinter.CTkEntry(root)
@@ -283,21 +282,5 @@ download_button.pack(pady=10)
 
 open_music_player_button = customtkinter.CTkButton(root, text="Open Music Player", command=open_music_player)
 open_music_player_button.pack(pady=10)
-
-#root.mainloop()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 root.mainloop()

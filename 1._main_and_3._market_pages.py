@@ -275,7 +275,7 @@ def return_to_main_page():
             button.pack(padx=20, pady=(20))
         elif text == "Music":
             button = ctk.CTkButton(button_frame, text=text, width=290, height=100, anchor='center', font=('Helvetica', 45, 'bold'), fg_color='#268717', hover_color='#59d119', bg_color='#1d1e1f')
-            button.configure(command=lambda: os.system('python 4._music_player_Nessa.py'))
+            button.configure(command=lambda:os.system('python3 4._music_player_Nessa.py'))
             button.pack(padx=20, pady=(0,20))
         elif text == "Exit":
             button = ctk.CTkButton(button_frame, text=text, width=290, height=100, anchor='center', font=('Helvetica', 45, 'bold'), fg_color='#8f9110', hover_color='#d1d119', bg_color='#1d1e1f')
