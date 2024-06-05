@@ -12,28 +12,58 @@ from selenium.webdriver.support import expected_conditions as EC
 import pyperclip
 import datetime
 import os
+import threading
 
 # Function to initialize WebDriver
 def initialize_driver():
-    try:
-        # Attempt to use Chrome
-        chrome_options = ChromeOptions()
-        chrome_options.add_argument("--headless")
-        driver = webdriver.Chrome(options=chrome_options)
-        print("Using Chrome WebDriver")
-    except Exception as e:
-        print(f"Failed to initialize Chrome WebDriver: {e}")
+    def start_chrome_driver(result):
         try:
-            # Attempt to use Firefox
+            chrome_options = ChromeOptions()
+            chrome_options.add_argument("--headless")
+            result.append(webdriver.Chrome(options=chrome_options))
+        except Exception as e:
+            result.append(e)
+
+    def start_firefox_driver(result):
+        try:
             firefox_options = FirefoxOptions()
             firefox_options.headless = False
             firefox_options.add_argument("--headless")
-            driver = webdriver.Firefox(options=firefox_options)
-            print("Using Firefox WebDriver")
+            result.append(webdriver.Firefox(options=firefox_options))
         except Exception as e:
-            print(f"Failed to initialize Firefox WebDriver: {e}")
+            result.append(e)
+
+    result = []
+    chrome_thread = threading.Thread(target=start_chrome_driver, args=(result,))
+    chrome_thread.start()
+    chrome_thread.join(timeout=5)  # Wait for 5 seconds
+
+    if chrome_thread.is_alive():
+        print("Chrome WebDriver initialization timed out. Trying Firefox...")
+        chrome_thread.join()  # Ensure the thread is cleaned up
+        result.clear()
+    else:
+        if isinstance(result[0], Exception):
+            print(f"Chrome WebDriver initialization failed: {result[0]}")
+        else:
+            print("Using Chrome WebDriver")
+            return result[0]
+
+    firefox_thread = threading.Thread(target=start_firefox_driver, args=(result,))
+    firefox_thread.start()
+    firefox_thread.join(timeout=5)  # Wait for 5 seconds
+
+    if firefox_thread.is_alive():
+        print("Firefox WebDriver initialization timed out.")
+        firefox_thread.join()  # Ensure the thread is cleaned up
+        raise RuntimeError("No suitable WebDriver found. Please ensure you have either geckodriver or chromedriver installed.")
+    else:
+        if isinstance(result[0], Exception):
+            print(f"Firefox WebDriver initialization failed: {result[0]}")
             raise RuntimeError("No suitable WebDriver found. Please ensure you have either geckodriver or chromedriver installed.")
-    return driver
+        else:
+            print("Using Firefox WebDriver")
+            return result[0]
 
 # Function to scrape data from the main page
 def scrape_main_page(driver, page_url):                                                                      
@@ -147,6 +177,31 @@ def copy_selected():
             print(f"Cannot convert {profile_id} to integer. Skipping.")
     pyperclip.copy(str(selected_profiles))
     messagebox.showinfo('Copy Successful', 'Selected profiles copied to clipboard!')
+    
+# Function to delete selected profiles
+def delete_selected():
+    global profiles_data
+    selected_items = tree.selection()
+    if not selected_items:
+        messagebox.showwarning('No Selection', 'Please select at least one profile to delete.')
+        return
+    
+    selected_indices = []
+    for item in selected_items:
+        item_index = tree.index(item)  # Get the index of the selected item in the Treeview
+        selected_indices.append(item_index)
+    
+    # Remove profiles from the profiles_data list using the selected indices
+    for index in sorted(selected_indices, reverse=True):
+        if 0 <= index < len(profiles_data):
+            del profiles_data[index]
+        else:
+            print(f"Index {index} out of range. Skipping.")
+
+    # Update the Treeview
+    update_treeview()
+
+    messagebox.showinfo('Delete Successful', 'Selected profiles deleted successfully!')
 
 # Function to copy all profiles to clipboard
 def copy_all():
@@ -231,6 +286,10 @@ copy_selected_button.pack(side="left", padx=5)
 # Button to copy all data
 copy_all_button = ctk.CTkButton(button_frame, text="Copy All", command=copy_all, **button_style)
 copy_all_button.pack(side="left", padx=5)
+
+# Button to delete selected data
+delete_selected_button = ctk.CTkButton(button_frame, text="Delete Selected", command=delete_selected, **button_style)
+delete_selected_button.pack(side="left", padx=5)
 
 # Run the GUI
 root.mainloop()
