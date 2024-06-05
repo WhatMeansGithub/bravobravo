@@ -16,7 +16,7 @@ def open_employees():
     root.withdraw()
 def open_music():
     root.withdraw()
-    subprocess.Popen(['/usr/bin/python3', '4._music_player_Nessa.py'])
+    subprocess.Popen(['/usr/bin/python3', 'musicpayer.py'])
 
 def open_market():
     root.withdraw()
@@ -53,6 +53,7 @@ Button3.pack(pady=20,padx=20)
 
 Button4=customtkinter.CTkButton(master=Frame, text="E X I T",fg_color="firebrick4",hover_color="#750000",corner_radius=8,command=root.destroy)
 Button4.pack(pady=20,padx=20)
+
 
 
 
