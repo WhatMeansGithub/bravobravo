@@ -1,4 +1,4 @@
-from validate_email import validate_email, validate_email_or_fail
+from validate_email import validate_email_or_fail
 import re
 import os
 import pandas as pd
@@ -55,7 +55,7 @@ def verify_email_smtp(email):
             check_blacklist=True,
             check_dns=True,
             dns_timeout=10,
-            check_smtp=False,  # Disable SMTP check
+            check_smtp=False,  
         )
         
         if not is_valid:
