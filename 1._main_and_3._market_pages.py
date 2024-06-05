@@ -1,128 +1,122 @@
-import json
 from tkinter import messagebox
-import tkinter as tk
-import ttkbootstrap as ttk
-from tkinter import font as tkFont
 from PIL import Image, ImageTk
-import customtkinter as ctk
-import os
-import requests
 from bs4 import BeautifulSoup
+import customtkinter as ctk
+import ttkbootstrap as ttk
 import pandas as pd
+import requests
+import json
+import os
 
 # MARKET CODE =============================================================================================================
 
-transaction_frame = None  # Define the "transaction_frame" variable
-current_table = ""  # Track the current active table
-current_webscraping_function = None  # Track the current webscraping function
+transaction_frame = None                                                            # Define the "transaction_frame" variable
+current_table = ""                                                                  # Track the current active table
+current_webscraping_function = None                                                 # Track the current webscraping function
 
-def display_web_tables(soup, table_class, function_name):
-    global current_table
-    current_table = function_name  # Set the current active table
-    tables = soup.find_all('table', class_=table_class)  # Find all tables with the specified class
-    if tables:  # If at least one table is found
-        combined_string = ""  # Create a string to store the text representation of all DataFrames
-        if not os.path.exists('market files'):  # if the folder 'market' doesn't exist
-            os.makedirs('market files')  # Create the folder 'market'
-        combined_df = pd.DataFrame()  # DataFrame to hold all tables
-        for i, table in enumerate(tables):  # Loop through each found table
-            headers = [header.text.strip() for header in table.find_all('th')]  # Extract all headers from currently accessed table
-            rows = []  # Create an empty list to store rows
-            for row in table.find_all('tr')[1:]:  # Loop through each row (excluding the header row)
-                columns = row.find_all('td')  # Extract columns from the row
-                rows.append([col.text.strip() for col in columns])  # Append cleaned text to rows list
-            df = pd.DataFrame(rows, columns=headers)  # Create DataFrame from headers and rows
-            df.index = df.index + 1  # Increment index by 1 so it starts from 1 not 0
-            file_name = f'{function_name}_{i+1}.csv'  # Save DataFrame to CSV file in the 'market' folder
-            file_path = os.path.join('market files', file_name)  # Create the file path
-            df.to_csv(file_path, index=False, mode='w')  # Save the DataFrame to the file path
-            print(df)  # Display DataFrame
-            combined_string += df.to_string() + "\n\n"  # Append the string representation of the DataFrame to the combined string
-            combined_df = pd.concat([combined_df, df], ignore_index=True)  # Combine all tables into one DataFrame
-        update_treeview(tree, combined_df.columns.tolist(), combined_df.values.tolist())
-    else:
-        print("No table found with the specified class.")  
+def display_web_tables(soup, table_class, function_name):                           # complicated function to scrape and save tables from the web
+    global current_table                                                            # accessing the global variable 'current_table' so we know which table we are currently working with
+    current_table = function_name                                                   # the current table = 'indices' or 'trending_stocks' or etc.
+    tables = soup.find_all('table', class_=table_class)                             # find all tables with the 'table' tag and the specified class
+    if tables:                                                                      # if at least one table is found we continue with the code
+        if not os.path.exists('market files'):                                      #   if the folder 'market' doesn't exist
+            os.makedirs('market files')                                             #       create the folder 'market'
+        combined_tb = pd.DataFrame()                                                #   creating a DataFrame on the go to hold all tables
+        for i, table in enumerate(tables):                                          #   loop through each found table (example: government bonds has 73 tabes on the same page so the loop works 73 times)
+            headers = [header.text.strip() for header in table.find_all('th')]      #       extract all headers from currently accessed table
+            rows = []                                                               #       create an empty list to store rows
+            for row in table.find_all('tr')[1:]:                                    #       loop through each row (excluding the header row)
+                columns = row.find_all('td')                                        #           extract all columns from each row
+                rows.append([col.text.strip() for col in columns])                  #           insert the cleaned text to rows list (which later goes in the DataFrame)
+            tb = pd.DataFrame(rows, columns=headers)                                #       create DataFrame from headers and rows
+            tb.index = tb.index + 1                                                 #       make it so the list index starts from 1 not 0 as usual 
+            file_name = f'{function_name}_{i+1}.csv'                                #       make it so the saved file has a specific name
+            file_path = os.path.join('market files', file_name)                     #       save the CSV file in the 'market files' folder
+            tb.to_csv(file_path, index=False, mode='w')                             #       save the scraped table as a CSV file in the 'market files' folder with a specific name
+            print(tb)                                                               #       prints the table
+            combined_tb = pd.concat([combined_tb, tb], ignore_index=True)           #       add the table to the list of all tables for the current page
+        update_treeview(tree, combined_tb.columns.tolist(), combined_tb.values.tolist())# update the Treeview with the combined tables list (all tables from the current page)
+    else:                                                                           # if no tables are found
+        print("No table found with the specified class.")                           #   print a message to the terminal
 
-def get_indices():
-    url = 'https://www.investing.com/indices/major-indices'
-    page = requests.get(url)
-    soup = BeautifulSoup(page.text, 'html.parser')
-    display_web_tables(soup, 'datatable-v2_table__93S4Y', 'indices')
+def get_indices():                                                                  # Function to scrape the indices table from the web
+    url = 'https://www.investing.com/indices/major-indices'                         # we get the URL of the website under the variable 'url'
+    page = requests.get(url)                                                        # this simulates opening the website in a browser
+    soup = BeautifulSoup(page.text, 'html.parser')                                  # this lets us take the HTML code of the website and use it as a string
+    display_web_tables(soup, 'datatable-v2_table__93S4Y', 'indices')                # this looks for the specific html code and table name that contain the table we want to scrape
 
-def get_trending():
-    url = 'https://www.investing.com/equities/trending-stocks'
-    page = requests.get(url)
-    soup = BeautifulSoup(page.text, 'html.parser')
-    display_web_tables(soup, 'datatable-v2_table__93S4Y', 'trending_stocks')
+def get_trending():                                                                 # Function to scrape the trending stocks table from the web
+    url = 'https://www.investing.com/equities/trending-stocks'                      # we get the URL of the website under the variable 'url'
+    page = requests.get(url)                                                        # this simulates opening the website in a browser
+    soup = BeautifulSoup(page.text, 'html.parser')                                  # this lets us take the HTML code of the website and use it as a string
+    display_web_tables(soup, 'datatable-v2_table__93S4Y', 'trending_stocks')        # this looks for the specific html code and table name that contain the table we want to scrape
 
-def get_commodity_futures():
-    url = 'https://www.investing.com/commodities/real-time-futures'
-    page = requests.get(url)
-    soup = BeautifulSoup(page.text, 'html.parser')
-    display_web_tables(soup, 'datatable-v2_table__93S4Y', 'commodity_futures')
+def get_commodity_futures():                                                        # Function to scrape the commodity futures table from the web
+    url = 'https://www.investing.com/commodities/real-time-futures'                 # we get the URL of the website under the variable 'url'
+    page = requests.get(url)                                                        # this simulates opening the website in a browser
+    soup = BeautifulSoup(page.text, 'html.parser')                                  # this lets us take the HTML code of the website and use it as a string 
+    display_web_tables(soup, 'datatable-v2_table__93S4Y', 'commodity_futures')      # this looks for the specific html code and table name that contain the table we want to scrape             
+      
+def get_exchange_rates():                                                           # Function to scrape the exchange rates table from the web
+    url = 'https://www.investing.com/currencies/streaming-forex-rates-majors'       # we get the URL of the website under the variable 'url'
+    page = requests.get(url)                                                        # this simulates opening the website in a browser         
+    soup = BeautifulSoup(page.text, 'html.parser')                                  # this lets us take the HTML code of the website and use it as a string        
+    display_web_tables(soup, 'datatable-v2_table__93S4Y', 'exchange_rates')         # this looks for the specific html code and table name that contain the table we want to scrape                
 
-def get_exchange_rates():
-    url = 'https://www.investing.com/currencies/streaming-forex-rates-majors'
-    page = requests.get(url)
-    soup = BeautifulSoup(page.text, 'html.parser')
-    display_web_tables(soup, 'datatable-v2_table__93S4Y', 'exchange_rates')
+def get_etfs():                                                                     # Function to scrape the ETFs table from the web
+    url = 'https://www.investing.com/etfs/major-etfs'                               # we get the URL of the website under the variable 'url'
+    page = requests.get(url)                                                        # this simulates opening the website in a browser          
+    soup = BeautifulSoup(page.text, 'html.parser')                                  # this lets us take the HTML code of the website and use it as a string                
+    display_web_tables(soup, 'genTbl closedTbl crossRatesTbl elpTbl elp40', 'etfs') # this looks for the specific html code and table name that contain the table we want to scrape                               
 
-def get_etfs():
-    url = 'https://www.investing.com/etfs/major-etfs'
-    page = requests.get(url)
-    soup = BeautifulSoup(page.text, 'html.parser')
-    display_web_tables(soup, 'genTbl closedTbl crossRatesTbl elpTbl elp40', 'etfs')
+def get_government_bonds():                                                         # Function to scrape the government bonds table from the web
+    url = 'https://www.investing.com/rates-bonds/world-government-bonds'            # we get the URL of the website under the variable 'url'
+    page = requests.get(url)                                                        # this simulates opening the website in a browser                 
+    soup = BeautifulSoup(page.text, 'html.parser')                                  # this lets us take the HTML code of the website and use it as a string             
+    display_web_tables(soup, 'genTbl closedTbl crossRatesTbl', 'government_bonds')  # this looks for the specific html code and table name that contain the table we want to scrape                     
 
-def get_government_bonds():
-    url = 'https://www.investing.com/rates-bonds/world-government-bonds'
-    page = requests.get(url)
-    soup = BeautifulSoup(page.text, 'html.parser')
-    display_web_tables(soup, 'genTbl closedTbl crossRatesTbl', 'government_bonds')
+def get_funds():                                                                    # Function to scrape the funds table from the web
+    url = 'https://www.investing.com/funds/major-funds'                             # we get the URL of the website under the variable 'url'
+    page = requests.get(url)                                                        # this simulates opening the website in a browser                  
+    soup = BeautifulSoup(page.text, 'html.parser')                                  # this lets us take the HTML code of the website and use it as a string            
+    display_web_tables(soup, 'genTbl closedTbl crossRatesTbl elpTbl elp40', 'funds')# this looks for the specific html code and table name that contain the table we want to scrape                          
 
-def get_funds():
-    url = 'https://www.investing.com/funds/major-funds'
-    page = requests.get(url)
-    soup = BeautifulSoup(page.text, 'html.parser')
-    display_web_tables(soup, 'genTbl closedTbl crossRatesTbl elpTbl elp40', 'funds')
+def get_cryptocurrencies():                                                         # Function to scrape the cryptocurrencies table from the web
+    url = 'https://markets.businessinsider.com/cryptocurrencies'                    # we get the URL of the website under the variable 'url'
+    page = requests.get(url)                                                        # this simulates opening the website in a browser                               
+    soup = BeautifulSoup(page.text, 'html.parser')                                  # this lets us take the HTML code of the website and use it as a string                                     
+    display_web_tables(soup, 'table table--col-1-font-color-black table--suppresses-line-breaks table--fixed', 'cryptocurrencies')# this looks for the specific html code and table name that contain the table we want to scrape
 
-def get_cryptocurrencies():
-    url = 'https://markets.businessinsider.com/cryptocurrencies'
-    page = requests.get(url)
-    soup = BeautifulSoup(page.text, 'html.parser')
-    display_web_tables(soup, 'table table--col-1-font-color-black table--suppresses-line-breaks table--fixed', 'cryptocurrencies')
+def load_stock_data(table_name):                                                    # Function to load stock data from a JSON file
+    market_files_dir = 'market files'                                               # giving the folder name a variable for later use
+    stock_data_file = os.path.join(market_files_dir, f'{table_name}_stocks.json')   # telling the code where to load the file from and under what name
+    if os.path.exists(stock_data_file):                                             # if the file exists
+        with open(stock_data_file, 'r') as file:                                    #   open the file in read mode allowing us to read data from it
+            return json.load(file)                                                  #       load the stock data from the file
+    return {}                                                                       # if the file doesn't exist return an empty dictionary
 
-def load_stock_data(table_name):
-    market_files_dir = 'market files'
-    stock_data_file = os.path.join(market_files_dir, f'{table_name}_stocks.json')
-    if os.path.exists(stock_data_file):
-        with open(stock_data_file, 'r') as file:
-            return json.load(file)
-    return {}
+def save_stock_data(table_name, stock_data):                                        # Function to save the bought stocks data to a JSON file
+    market_files_dir = 'market files'                                               # giving the folder name a variable for later use
+    if not os.path.exists(market_files_dir):                                        # if the folder doesn't exist
+        os.makedirs(market_files_dir)                                               #   create the folder
+    stock_data_file = os.path.join(market_files_dir, f'{table_name}_stocks.json')   # telling the code where to save the file and under what name
+    with open(stock_data_file, 'w') as file:                                        # open the file in write mode
+        json.dump(stock_data, file)                                                 #   write the stock data to the file
 
-def save_stock_data(table_name, stock_data):
-    market_files_dir = 'market files'
-    if not os.path.exists(market_files_dir):
-        os.makedirs(market_files_dir)
-    stock_data_file = os.path.join(market_files_dir, f'{table_name}_stocks.json')
-    with open(stock_data_file, 'w') as file:
-        json.dump(stock_data, file)
-
-def update_treeview(tree, headers, rows):
-    tree.delete(*tree.get_children())
-    stock_data = load_stock_data(current_table)  # Load current stock data
-    tree["columns"] = ["Index", "Stock Count"] + headers  # Add "Index" and "Stock Count" as the first columns
-    tree.heading("Index", text="Index")  # Set the heading for the "Index" column
-    tree.heading("Stock Count", text="Stock Count")  # Set the heading for the "Stock Count" column
-    tree.column("Index", anchor='w', width=50, stretch=False)  # Set the width of the "Index" column and disable stretching
-    tree.column("Stock Count", anchor='center', width=100, stretch=False)  # Set the width of the "Stock Count" column
-
-    for header in headers:
-        tree.heading(header, text=header)
-        tree.column(header, anchor='center', width=100, minwidth=50, stretch=True)
-    for i, row in enumerate(rows, start=1):
-        stock_index = row[0]  # Assume the first column uniquely identifies the stock
-        stock_count = stock_data.get(str(i), 0)  # Get stock count for the current stock
-        tree.insert("", "end", values=[i, stock_count] + row)  # Add the index and stock count as the first values in each row
+def update_treeview(tree, headers, rows):                                           # Function to update the Treeview with the scraped data
+    tree.delete(*tree.get_children())                                               # this deletes all the table info from the Treeview widget
+    stock_data = load_stock_data(current_table)                                     # load the stock data from the JSON file
+    tree["columns"] = ["Index", "Stock Count"] + headers                            # add "Index" and "Stock Count" as the first columns
+    tree.heading("Index", text="#")                                                 # set the text of the "Index" column to "#" to indicate the index
+    tree.heading("Stock Count", text="Owned")                                       # set the text of the "Stock Count" column to "Owned" to indicate owned stocks
+    tree.column("Index", anchor='w', width=25, stretch=False)                       # set the width of the "Index" column and disable stretching so it doesnt change to a smaller size
+    tree.column("Stock Count", anchor='center', width=60, stretch=False)            # set the width of the "Stock Count" column and disable stretching so it doesnt change to a smaller size
+    for header in headers:                                                          # loop - for each header in the table
+        tree.heading(header, text=header)                                           #   set the text of the header to the header name
+        tree.column(header, anchor='center', width=80, minwidth=50)                 #   set the width of the header column and allow stretching
+    for i, row in enumerate(rows, start=1):                                         # loop - for each row in the table
+        stock_count = stock_data.get(str(i), 0)                                     #   get stock count for the current stock which is loaded from the JSON file
+        tree.insert("", "end", values=[i, stock_count] + row)                       #   insert the row into the Treeview widget with the new stock count
 
 def update_stock_count_in_treeview(tree):
     stock_data = load_stock_data(current_table)
