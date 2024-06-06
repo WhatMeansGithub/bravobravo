@@ -87,15 +87,18 @@ def get_cryptocurrencies():                                                     
     soup = BeautifulSoup(page.text, 'html.parser')                                  # this lets us take the HTML code of the website and use it as a string                                     
     display_web_tables(soup, 'table table--col-1-font-color-black table--suppresses-line-breaks table--fixed', 'cryptocurrencies')# this looks for the specific html code and table name that contain the table we want to scrape
 
-def load_stock_data(table_name):                                                    # Function to load stock data from a JSON file
-    market_files_dir = 'market files'                                               # giving the folder name a variable for later use
-    stock_data_file = os.path.join(market_files_dir, f'{table_name}_stocks.json')   # telling the code where to load the file from and under what name
-    if os.path.exists(stock_data_file):                                             # if the file exists
-        with open(stock_data_file, 'r') as file:                                    #   open the file in read mode allowing us to read data from it
-            return json.load(file)                                                  #       load the stock data from the file
-    return {}                                                                       # if the file doesn't exist return an empty dictionary
 
-def save_stock_data(table_name, stock_data):                                        # Function to save the bought stocks data to a JSON file
+
+
+def load_stock_data(table_name):                                                    # Function that loads the amount of owned stocks from JSON file corresponding to the currently scraped table (a number)
+    market_files_dir = 'market files'                                               # assigning the folder name to a variable so we can use it
+    stock_data_file = os.path.join(market_files_dir, f'{table_name}_stocks.json')   # telling the program where to find the file and it's name + assigning it to a variable so we can use that information
+    if os.path.exists(stock_data_file):                                             # if the file exists (in that folder & under that name)
+        with open(stock_data_file, 'r') as file:                                    #   we get permission to read/extract data from the file before we open it
+            return json.load(file)                                                  #       and we load the file so it can we can actually extract its data
+    return {}                                                                       # if the file doesn't exist the column with the 'owned stocks' amount will be empty when the table is shown
+
+def save_new_stock_data(table_name, stock_data):                                    # Function to save the bought stocks data to a JSON file
     market_files_dir = 'market files'                                               # giving the folder name a variable for later use
     if not os.path.exists(market_files_dir):                                        # if the folder doesn't exist
         os.makedirs(market_files_dir)                                               #   create the folder
@@ -118,12 +121,12 @@ def update_treeview(tree, headers, rows):                                       
         stock_count = stock_data.get(str(i), 0)                                     #   get stock count for the current stock which is loaded from the JSON file
         tree.insert("", "end", values=[i, stock_count] + row)                       #   insert the row into the Treeview widget with the new stock count
 
-def update_stock_count_in_treeview(tree):
-    stock_data = load_stock_data(current_table)
-    for item in tree.get_children():
-        stock_index = tree.item(item, 'values')[0]
-        stock_count = stock_data.get(str(stock_index), 0)
-        current_values = tree.item(item, 'values')
+def update_stock_count_in_treeview(tree):                                           # Function to update the stock count in the Treeview after webscraping/buying/selling
+    stock_data = load_stock_data(current_table)                                     # load the amount of owned stocks data from the JSON file
+    for item in tree.get_children():                                                # loop - for each item in the Treeview widget
+        stock_index = tree.item(item, 'values')[0]                                  #   get the stocks index (the stock number in the list of stocks)
+        stock_count = stock_data.get(str(stock_index), 0)                           #   get the amount of owned stocks for that specific stock number on the list
+        current_values = tree.item(item, 'values')                                  #   get how many stock
         new_values = [current_values[0], stock_count] + current_values[2:]
         tree.item(item, values=new_values)
 
@@ -153,7 +156,7 @@ def show_market_buttons():
                     if str(stock_index) not in stock_data:
                         stock_data[str(stock_index)] = 0
                     stock_data[str(stock_index)] += amount
-                save_stock_data(current_table, stock_data)
+                save_new_stock_data(current_table, stock_data)
                 messagebox.showinfo("Transaction Successful", f"Bought {amount} of each selected stock")
                 current_webscraping_function()  # Re-scrape the current table
             else:
@@ -179,7 +182,7 @@ def show_market_buttons():
                             messagebox.showwarning("Not Enough Stocks", f"Not enough stocks to sell {amount} of {stock_index}.")
                     else:
                         messagebox.showwarning("No Stocks", f"No stocks available to sell for {stock_index}.")
-                save_stock_data(current_table, stock_data)
+                save_new_stock_data(current_table, stock_data)
                 current_webscraping_function()  # Re-scrape the current table
             else:
                 messagebox.showwarning("No Selection", "Please select a stock to sell.")
