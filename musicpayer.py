@@ -340,7 +340,7 @@ root.geometry("1200x800+400+150")                                 # Setting the 
 window_width = root.winfo_width()
 window_height = root.winfo_height()
 
-img=ImageTk.PhotoImage(Image.open("/home/dci-student/Desktop/bravobravo/music-note -red.jpg"))
+img=ImageTk.PhotoImage(Image.open("../bravobravo/music-note-red.jpg"))
 im1=customtkinter.CTkLabel(root,image=img, height=800,width=1200)
 im1.pack()
 
