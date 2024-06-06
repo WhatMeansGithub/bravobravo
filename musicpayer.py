@@ -341,8 +341,9 @@ window_width = root.winfo_width()
 window_height = root.winfo_height()
 
 img=ImageTk.PhotoImage(Image.open("../bravobravo/music-note-red.jpg"))
-im1=customtkinter.CTkLabel(root,image=img, height=800,width=1200)
-im1.pack()
+img = customtkinter.CTkLabel(root, image=img)
+img.pack(fill="both", expand=True)
+img.pack()
 
 
 
