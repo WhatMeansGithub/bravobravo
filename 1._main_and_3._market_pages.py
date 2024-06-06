@@ -276,7 +276,7 @@ def return_to_main_page():
 
         if text == "Employees":
             button = ctk.CTkButton(button_frame, text=text, width=290, height=100, anchor='center', font=('Helvetica', 45, 'bold'), fg_color='#174487', hover_color='#5391f5', bg_color='#1d1e1f')
-            button.configure(command=lambda: os.system('python 2._employees.py'))
+            button.configure(command=lambda: os.system('python3 2._employees.py'))
             button.pack(padx=20, pady=(20,0))
         elif text == "Market":
             button = ctk.CTkButton(button_frame, text=text, width=290, height=100, anchor='center', font=('Helvetica', 45, 'bold'), fg_color='#0f6961', hover_color='#19d1b9', bg_color='#1d1e1f')
