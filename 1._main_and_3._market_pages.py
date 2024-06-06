@@ -6,6 +6,7 @@ import ttkbootstrap as ttk
 import pandas as pd
 import requests
 import json
+import subprocess
 import os
 
 # MARKET CODE =============================================================================================================
@@ -195,6 +196,9 @@ def show_market_buttons():
             total_stocks += stock_data.get(str(stock_index), 0)
         messagebox.showinfo("Stock Information", f"Total stocks selected: {total_stocks}")
 
+
+
+
     global transaction_frame
     if transaction_frame is not None:
         transaction_frame.place_forget()
@@ -247,6 +251,12 @@ def set_current_webscraping_function(function):
     global current_webscraping_function
     current_webscraping_function = function
 
+
+def open_music_player():
+    root.destroy()  # Close the main window
+    subprocess.run(["python3 4" , "/home/dci-student/Desktop/bravobravo/4._music_player.py"])  # Open the music player window
+
+
 # MAIN PAGE CODE ==========================================================================================================
 
 def return_to_main_page():
@@ -255,6 +265,8 @@ def return_to_main_page():
         widget.destroy()
     if transaction_frame is not None:
         transaction_frame.place_forget()
+
+
 
     main_buttons = ["Employees", "Market", "Music", "Exit"]
     for text in main_buttons:
@@ -269,12 +281,13 @@ def return_to_main_page():
             button.pack(padx=20, pady=(20))
         elif text == "Music":
             button = ctk.CTkButton(button_frame, text=text, width=290, height=100, anchor='center', font=('Helvetica', 45, 'bold'), fg_color='#268717', hover_color='#59d119', bg_color='#1d1e1f')
-            button.configure(command=lambda:os.system('python3 4._music_player_Nessa.py'))
+            button.configure(command=lambda:os.system('python3 4./home/dci-student/Desktop/bravobravo/4._music_player.py'))
             button.pack(padx=20, pady=(0,20))
         elif text == "Exit":
             button = ctk.CTkButton(button_frame, text=text, width=290, height=100, anchor='center', font=('Helvetica', 45, 'bold'), fg_color='#8f9110', hover_color='#d1d119', bg_color='#1d1e1f')
             button.configure(command=lambda: root.destroy())
             button.pack(padx=20, pady=(0, 320))
+
 
 root = ttk.Window(themename='darkly')  # Creating a tkinter window and customising it
 
