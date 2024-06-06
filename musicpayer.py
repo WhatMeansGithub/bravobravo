@@ -171,6 +171,12 @@ def open_music_player():
     pbar = customtkinter.CTkProgressBar(master=music_player, orientation='horizontal', width=300,fg_color="white", progress_color="firebrick4")
     pbar.place(relx=.5, rely=.85, anchor=tk.CENTER)
 
+
+    back_button = customtkinter.CTkButton(Frame, text="Back", command=back,fg_color="#750000",hover_color="firebrick4",font=("Arial", 15, "bold"))
+    back_button.grid(row=7, column=0, columnspan=2, pady=10)
+
+
+
     lbox = tk.Listbox(music_player)
     lbox.place(relx=0.5, rely=0.9, anchor=tk.LEFT)
 
@@ -182,6 +188,20 @@ def open_music_player():
         play_music(selected_index)
     
     lbox.bind('<Double-1>', play_selected_song)
+
+    def  song_listbox(event):
+        selected_index = lbox.curselection()[0]
+        play_music(selected_index)
+    
+    lbox.bind('<Double-1>',  song_listbox)
+
+
+
+def back():
+    root.destroy()
+    subprocess.Popen(['/usr/bin/python3', 'mainpage.py'])
+
+
 
     music_player.mainloop()
 
@@ -314,13 +334,18 @@ def back():
 
 # Main application window
 root = customtkinter.CTk()
-root.title("Music Application")
+root.title("Vibe Box")
 root.geometry("1200x800+400+150")                                 # Setting the fixed size and position of the window
 
+window_width = root.winfo_width()
+window_height = root.winfo_height()
 
-img=ImageTk.PhotoImage(Image.open("yt.jpg"))
-im1=customtkinter.CTkLabel(root,image=img)
+img=ImageTk.PhotoImage(Image.open("/home/dci-student/Desktop/bravobravo/music-note -red.jpg"))
+im1=customtkinter.CTkLabel(root,image=img, height=800,width=1200)
 im1.pack()
+
+
+
 
 Frame=customtkinter.CTkFrame(master=root , width=500, height=600,border_color="#CD3131",border_width=0)
 Frame.place(relx=0.5, rely=0.5, anchor=CENTER)

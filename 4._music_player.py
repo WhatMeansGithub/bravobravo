@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import CENTER, filedialog, messagebox
 import customtkinter
 from PIL import Image, ImageTk
 import os
@@ -10,18 +10,17 @@ from mutagen.mp3 import MP3
 from googleapiclient.discovery import build
 from pytube import YouTube
 from moviepy.editor import AudioFileClip
-import random
-from pathlib import Path
+from yt_dlp import YoutubeDL
+import subprocess
 
 # Initialize pygame mixer
 pygame.mixer.init()
 
 # Set appearance mode and default color theme
-customtkinter.set_appearance_mode("System")  # Modes: system (default), light, dark
+customtkinter.set_appearance_mode("light")  # Modes: system (default), light, dark
 customtkinter.set_default_color_theme("green")  # Themes: blue (default), dark-blue, green
 
 # Global variables
-IMG_PATH = Path('/home/dci-student/Desktop/bravobravo/Nessa/img')
 list_of_songs = []
 list_of_covers = []
 n = 0
@@ -34,10 +33,10 @@ def clear_entries(*entries):
 
 # Function to display cover and song name
 def display_cover_and_name(song_index):
-    cover_path = random.choice(list_of_covers)
+    cover_path = list_of_covers[song_index % len(list_of_covers)]
     song_name = os.path.basename(list_of_songs[song_index])
     img = Image.open(cover_path)
-    img = img.resize((400, 370), Image.Resampling.LANCZOS)
+    img = img.resize((250, 250), Image.Resampling.LANCZOS)
     load = ImageTk.PhotoImage(img)
 
     global label1
@@ -110,7 +109,7 @@ def open_music_player():
     music_player.geometry("1200x800+400+150")
 
     # Add background image
-    bg_image = Image.open('Nessa/img/3d-music.jpg')
+    bg_image = Image.open('music3.jpg')
     bg_image = bg_image.resize((1200, 800), Image.Resampling.LANCZOS)
     bg_photo = ImageTk.PhotoImage(bg_image)
 
@@ -120,8 +119,7 @@ def open_music_player():
 
     # Update global variables
     list_of_songs = [os.path.join('Nessa/music', file) for file in os.listdir('Nessa/music') if file.endswith(".mp3")]
-    list_of_covers = random.choice([str(img) for img in IMG_PATH.iterdir()])
-    import pdb;pdb.set_trace()
+    list_of_covers = ['Nessa/img/colorful-music-note.jpg', 'Nessa/img/headimg.jpg', 'Nessa/img/beautiful-robotic-woman-listening.jpg', 'Nessa/img/person-listen-music.jpg', 'Nessa/img/music-note.jpg', 'Nessa/img/beautiful-robotic-woman-listening.jpg']
     n = 0
 
     
@@ -153,23 +151,31 @@ def open_music_player():
     dropdown_button = customtkinter.CTkButton(master=music_player, text="Select Music", command=open_dropdown)
     dropdown_button.place(relx=0.01, rely=0.01, anchor=tk.NW)
 
-    play_button = customtkinter.CTkButton(master=music_player, text='Play', command=play_music, width=5)
+   
+
+    play_button = customtkinter.CTkButton(master=music_player, text='Play', command=play_music, width=5,fg_color="#750000",hover_color="firebrick4")
     play_button.place(relx=0.5, rely=0.7, anchor=tk.CENTER)
     
-    pause_button = customtkinter.CTkButton(master=music_player, text='Pause', command=pause_music, width=5)
+    pause_button = customtkinter.CTkButton(master=music_player, text='Pause', command=pause_music, width=5,fg_color="#750000",hover_color="firebrick4")
     pause_button.place(relx=0.4, rely=0.7, anchor=tk.CENTER)
     
-    skip_b = customtkinter.CTkButton(master=music_player, text='<', command=play_previous_music, width=5)
+    skip_b = customtkinter.CTkButton(master=music_player, text='<', command=play_previous_music, width=5,fg_color="#750000",hover_color="firebrick4")
     skip_b.place(relx=0.3, rely=0.7, anchor=tk.CENTER)
     
-    skip_f = customtkinter.CTkButton(master=music_player, text='>', command=play_next_music, width=5)
+    skip_f = customtkinter.CTkButton(master=music_player, text='>', command=play_next_music, width=5,fg_color="#750000",hover_color="firebrick4")
     skip_f.place(relx=0.6, rely=0.7, anchor=tk.CENTER)
     
-    slider = customtkinter.CTkSlider(master=music_player, from_=0, to=1, command=volume, width=210)
+    slider = customtkinter.CTkSlider(master=music_player, from_=0, to=1, command=volume, width=210,fg_color="white",bg_color="firebrick4",button_color="firebrick4",border_width=0)
     slider.place(relx=0.5, rely=0.78, anchor=tk.CENTER)
 
-    pbar = customtkinter.CTkProgressBar(master=music_player)
+    pbar = customtkinter.CTkProgressBar(master=music_player, orientation='horizontal', width=300,fg_color="white", progress_color="firebrick4")
     pbar.place(relx=.5, rely=.85, anchor=tk.CENTER)
+
+
+    back_button = customtkinter.CTkButton(Frame, text="Back", command=back,fg_color="#750000",hover_color="firebrick4",font=("Arial", 15, "bold"))
+    back_button.grid(row=7, column=0, columnspan=2, pady=10)
+
+
 
     lbox = tk.Listbox(music_player)
     lbox.place(relx=0.5, rely=0.9, anchor=tk.LEFT)
@@ -182,6 +188,20 @@ def open_music_player():
         play_music(selected_index)
     
     lbox.bind('<Double-1>', play_selected_song)
+
+    def  song_listbox(event):
+        selected_index = lbox.curselection()[0]
+        play_music(selected_index)
+    
+    lbox.bind('<Double-1>',  song_listbox)
+
+
+
+def back():
+    root.destroy()
+    subprocess.Popen(['/usr/bin/python3', 'mainpage.py'])
+
+
 
     music_player.mainloop()
 
@@ -236,17 +256,19 @@ def search_music_online():
     display_search_results(search_results)
 
 # Function to display search results
+    
 def display_search_results(results):
     search_results_window = customtkinter.CTkToplevel(root)
     search_results_window.title("Search Results")
-    search_results_window.geometry("400x800+400+150")
+    search_results_window.geometry("650x550")
 
     for idx, (song_name, url) in enumerate(results):
         result_label = customtkinter.CTkLabel(search_results_window, text=song_name)
         result_label.pack(pady=2)
-        download_button = customtkinter.CTkButton(search_results_window, text="Download", command=lambda url=url: download_and_convert(url))
+        download_button = customtkinter.CTkButton(search_results_window, text="Download", command=lambda url=url: download_and_convert(url),fg_color="#750000",hover_color="firebrick4")
         download_button.pack(pady=2)
 
+   
 # Function to download and convert music
 def download_and_convert(url):
     file_path = filedialog.asksaveasfilename(defaultextension=".mp3", filetypes=[("MP3 files", "*.mp3")])
@@ -261,26 +283,114 @@ def download_and_convert(url):
         else:
             messagebox.showerror("Error", "Failed to download music")
 
+def select_directory():
+    global directory_path
+    directory_path = filedialog.askdirectory()
+    if directory_path:
+        messagebox.showinfo("Directory Selected", f"Files will be saved to: {directory_path}")
+def download_video():
+    url = url_entry.get()
+    if url and directory_path:
+        try:
+            ydl_opts = {
+                'format': 'best', 
+                'outtmpl': os.path.join(directory_path, '%(title)s.%(ext)s'),
+                'postprocessors': [{  
+                    'key': 'FFmpegVideoConvertor',
+                    'preferedformat': 'mp4', }],}
+            with YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
+                messagebox.showinfo("Download", "Downloaded Successfully")
+        except Exception as e:
+            print(f"An error occurred: {str(e)}")  
+            messagebox.showerror("Error", f"An error occurred: {str(e)}")
+    else:
+        messagebox.showwarning("Input Required", "Please provide a valid URL and select a directory.")
+
+def download_audio():
+     url = url_entry.get()
+     if url and directory_path:
+        try:
+            ydl_opts = {
+                'format': 'best', 
+                'outtmpl': os.path.join(directory_path, '%(title)s.%(ext)s'),
+                'postprocessors': [{ 
+                    'key': 'FFmpegVideoConvertor',
+                    'preferedformat': 'mp3',}],}
+            with YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
+                messagebox.showinfo("Download", "Downloaded Successfully")
+        except Exception as e:
+            print(f"An error occurred: {str(e)}")  
+            messagebox.showerror("Error", f"An error occurred: {str(e)}")
+     else:
+        messagebox.showwarning("Input Required", "Please provide a valid URL and select a directory.")
+
+
+def back():
+    root.destroy()
+    subprocess.Popen(['/usr/bin/python3', 'mainpage.py'])
+
+
 # Main application window
 root = customtkinter.CTk()
 root.title("Music Application")
 root.geometry("1200x800+400+150")                                 # Setting the fixed size and position of the window
 
-search_label = customtkinter.CTkLabel(root, text="Search Music Online:")
-search_label.pack(pady=10)
-search_entry = customtkinter.CTkEntry(root)
-search_entry.pack(pady=10)
-search_button = customtkinter.CTkButton(root, text="Search", command=search_music_online)
-search_button.pack(pady=10)
 
-download_label = customtkinter.CTkLabel(root, text="Download and Convert Music:")
-download_label.pack(pady=10)
-url_entry = customtkinter.CTkEntry(root, placeholder_text="Enter YouTube URL")
-url_entry.pack(pady=10)
-download_button = customtkinter.CTkButton(root, text="Download", command=lambda: download_and_convert(url_entry.get()))
-download_button.pack(pady=10)
+img=ImageTk.PhotoImage(Image.open("yt.jpg"))
+im1=customtkinter.CTkLabel(root,image=img)
+im1.pack()
 
-open_music_player_button = customtkinter.CTkButton(root, text="Open Music Player", command=open_music_player)
-open_music_player_button.pack(pady=10)
+Frame=customtkinter.CTkFrame(master=root , width=500, height=600,border_color="#CD3131",border_width=0)
+Frame.place(relx=0.5, rely=0.5, anchor=CENTER)
+
+url_label = customtkinter.CTkLabel(master=Frame, text="YouTube URL:")
+url_label.grid(row=0, column=0, padx=10, pady=5)
+url_entry = customtkinter.CTkEntry(master=Frame, width=400)
+url_entry.grid(row=1, column=0, padx=10, pady=5)
+select_button = customtkinter.CTkButton(master=Frame, text="Select Directory", command=select_directory,fg_color="#750000",hover_color="firebrick4",corner_radius=8)
+select_button.grid(row=2, column=0, columnspan=2, pady=10)
+
+download_button = customtkinter.CTkButton(master=Frame, text="Download Video", command=download_video,fg_color="firebrick4",hover_color="#750000",corner_radius=8)
+download_button.grid(row=3, column=0, columnspan=2, pady=10)
+audio_button = customtkinter.CTkButton(master=Frame, text="Download Audio", command=download_audio,fg_color="firebrick4",hover_color="#750000",corner_radius=8)
+audio_button.grid(row=4, column=0, columnspan=2, pady=10)
+directory_path = "" 
+
+
+search_label = customtkinter.CTkLabel(Frame, text="O R ",font=("Arial", 20, "bold"))
+search_label.grid(row=5, column=0, columnspan=2, padx=10, pady=5)
+
+search_label = customtkinter.CTkLabel(Frame, text="Search Music Online:",font=("Arial", 15,))
+search_label.grid(row=6, column=0, padx=10, pady=5)
+search_entry = customtkinter.CTkEntry(Frame,width=400)
+search_entry.grid(row=7, column=0, padx=10, pady=5, columnspan=3)
+search_button = customtkinter.CTkButton(Frame, text="Search", command=search_music_online,fg_color="#750000",hover_color="firebrick4")
+search_button.grid(row=8, column=0, padx=10, pady=5)
+
+
+
+open_music_player_button = customtkinter.CTkButton(Frame, text="Open Music Player", command=open_music_player,fg_color="#750000",hover_color="firebrick4")
+open_music_player_button.grid(row=9, column=0, columnspan=2, pady=10)
+
+back_button = customtkinter.CTkButton(Frame, text="B A C K", command=back,fg_color="#750000",hover_color="firebrick4",font=("Arial", 15, "bold"))
+back_button.grid(row=11, column=0, columnspan=2, pady=10)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 root.mainloop()
