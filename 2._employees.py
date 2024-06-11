@@ -16,7 +16,7 @@ import threading
 
 # Function to initialize WebDriver
 def initialize_driver():
-    def start_chrome_driver(result):
+    def start_chrome_driver(result):                                                                       # Starting with Chrome running in headless mode
         try:
             chrome_options = ChromeOptions()
             chrome_options.add_argument("--headless")
@@ -24,7 +24,7 @@ def initialize_driver():
         except Exception as e:
             result.append(e)
 
-    def start_firefox_driver(result):
+    def start_firefox_driver(result):                                                                      # Using Firefox if Chrome fails
         try:
             firefox_options = FirefoxOptions()
             firefox_options.headless = False
@@ -32,15 +32,16 @@ def initialize_driver():
             result.append(webdriver.Firefox(options=firefox_options))
         except Exception as e:
             result.append(e)
-
-    result = []
+    
+    # Timeout error handling
+    result = []                 
     chrome_thread = threading.Thread(target=start_chrome_driver, args=(result,))
     chrome_thread.start()
-    chrome_thread.join(timeout=5)  # Wait for 5 seconds
+    chrome_thread.join(timeout=5)                                                                           # Wait for 5 seconds
 
     if chrome_thread.is_alive():
         print("Chrome WebDriver initialization timed out. Trying Firefox...")
-        chrome_thread.join()  # Ensure the thread is cleaned up
+        chrome_thread.join()                                                                                # Ensure the thread is cleaned up
         result.clear()
     else:
         if isinstance(result[0], Exception):
@@ -51,11 +52,11 @@ def initialize_driver():
 
     firefox_thread = threading.Thread(target=start_firefox_driver, args=(result,))
     firefox_thread.start()
-    firefox_thread.join(timeout=5)  # Wait for 5 seconds
+    firefox_thread.join(timeout=5)                                                                          # Wait for 5 seconds
 
     if firefox_thread.is_alive():
         print("Firefox WebDriver initialization timed out.")
-        firefox_thread.join()  # Ensure the thread is cleaned up
+        firefox_thread.join()                                                                               # Ensure the thread is cleaned up
         raise RuntimeError("No suitable WebDriver found. Please ensure you have either geckodriver or chromedriver installed.")
     else:
         if isinstance(result[0], Exception):
@@ -68,21 +69,21 @@ def initialize_driver():
 # Function to scrape data from the main page
 def scrape_main_page(driver, page_url):                                                                      
     driver.get(page_url)                                                                                    
-    WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.m-profileImage')))    
-    profiles = driver.find_elements(By.CSS_SELECTOR, '.m-profileImage')                                     
+    WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.CSS_SELECTOR, '.m-profileImage')))    # Tells the webdriver to wait till the CSS_Selector is loaded 
+    profiles = driver.find_elements(By.CSS_SELECTOR, '.m-profileImage')                                     # Tells Selenium which element to target for scraping
     data = []                                                                                               
     for profile in profiles:                                                                                
-        name = profile.find_element(By.CLASS_NAME, 'm-profileImage__name').text.strip()
-        job_title = profile.find_element(By.CLASS_NAME, 'm-profileImage__jobDescription').text.strip()
+        name = profile.find_element(By.CLASS_NAME, 'm-profileImage__name').text.strip()                     # Finding profile name
+        job_title = profile.find_element(By.CLASS_NAME, 'm-profileImage__jobDescription').text.strip()      # Finding job description
         profile_link = profile.get_attribute('href')                                                        
-        data.append({'Name': name, 'Job Title': job_title, 'Profile Link': profile_link})                   
+        data.append({'Name': name, 'Job Title': job_title, 'Profile Link': profile_link})                   # Append found data to our list
     return data
 
 # Function to scrape data from a profile page
 def scrape_profile_page(driver, profile_url):
     driver.get(profile_url)                                                                                 
     WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.CLASS_NAME, 'a-mailto')))             
-    email_elem = driver.find_element(By.CLASS_NAME, 'a-mailto')                                             
+    email_elem = driver.find_element(By.CLASS_NAME, 'a-mailto')                                             # Finding the e-mail address          
     email = email_elem.get_attribute('href')
     if email.startswith("mailto:"):
         email = email.split(":")[1]                                 # Splits the string each time it encounters a ":", the "[1]" refers to the second item in the list
@@ -94,9 +95,9 @@ def scrape_profile_page(driver, profile_url):
 
 # Function to export data to CSV file with a unique name
 def export_to_csv(data):
-    if not os.path.exists('employees files'):                                                               
+    if not os.path.exists('employees files'):                                                               # Check for dir, if not create the directory for file storage                          
         os.makedirs('employees files')                                                                      
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")                                             
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")                                             # Adding a timestamp to the filename using strftime                   
     filename = os.path.join('employees files', f"profiles_{timestamp}.csv")                                 
     df = pd.DataFrame(data)
     df.to_csv(filename, index=False)
@@ -107,8 +108,8 @@ def update_gui(page_num=None):
     global profiles_data
     profiles_data = []
     if page_num is None or page_num.strip() == "":
-        page_numbers = range(1, 12)  # Gets pages 1-11 from the website if there's no input for page numbers
-    else:
+        page_numbers = range(1, 12)                                                                         # Gets pages 1-11 from the website if there's no input for page numbers
+    else:                                                                                                   # If no page number is input get all pages
         try:
             page_numbers = [int(page_num)]
         except ValueError:
@@ -117,12 +118,12 @@ def update_gui(page_num=None):
     
     driver = initialize_driver()
     for num in page_numbers:
-        print(f"Fetching data from page {num}")                                   # print statement to check if the program hangs fetching a certain page
+        print(f"Fetching data from page {num}")                                                             # print statement to check if the program hangs fetching a certain page
         page_url = f"https://www.epunkt.com/team/p{num}"
-        page_data = scrape_main_page(driver, page_url)  # Use a temporary list to store the current page data
+        page_data = scrape_main_page(driver, page_url)                                                      # Use a temporary list to store the current page data
         for profile in page_data:
             profile.update(scrape_profile_page(driver, profile['Profile Link']))
-        profiles_data += page_data  # Merge the current page data into the main profiles_data list
+        profiles_data += page_data                                                                          # Merge the current page data into the main profiles_data list
     print("Data fetching complete")
     update_treeview()
     driver.quit
@@ -142,7 +143,7 @@ def export_selected():
         return
     selected_profiles = []
     for item in selected_items:
-        profile_id = item[1:]  # Remove the "I" prefix
+        profile_id = item[1:]                                                                                # Remove the "I" prefix
         try:
             index = int(profile_id) - 1
             if 0 <= index < len(profiles_data):
@@ -166,7 +167,7 @@ def copy_selected():
         return
     selected_profiles = []
     for item in selected_items:
-        profile_id = item[1:]  # Remove the "I" prefix
+        profile_id = item[1:]                                                                                # Remove the "I" prefix
         try:
             index = int(profile_id) - 1
             if 0 <= index < len(profiles_data):
@@ -188,7 +189,7 @@ def delete_selected():
     
     selected_indices = []
     for item in selected_items:
-        item_index = tree.index(item)  # Get the index of the selected item in the Treeview
+        item_index = tree.index(item)                                                                        # Get the index of the selected item in the Treeview
         selected_indices.append(item_index)
     
     # Remove profiles from the profiles_data list using the selected indices
@@ -223,8 +224,8 @@ root = ctk.CTk()
 root.title("Scraped Profiles")
 # Style for Treeview
 style = ttk.Style()
-style.theme_use("clam")  # set the theme to use for ttk
-root.geometry("1200x800+400+150")                                 # Setting the fixed size and position of the window
+style.theme_use("clam")                                                                                        # set the theme to use for ttk
+root.geometry("1200x800+400+150")                                                                              # Setting the fixed size and position of the window
 
 
 # Customize the Treeview
@@ -254,7 +255,7 @@ page_number_entry.pack(pady=5)
 # Create Treeview to display scraped data using ttk
 columns = ('Name', 'Job Title', 'Profile Link', 'Email', 'Phone Number')
 tree = ttk.Treeview(root, columns=columns, show='headings', style="Treeview")
-sort_orders = {col: False for col in columns}  # Dictionary to keep track of sort orders
+sort_orders = {col: False for col in columns}                                                                   # Dictionary to keep track of sort orders
 
 for col in columns:
     tree.heading(col, text=col, command=lambda _col=col: sort_column(_col))
