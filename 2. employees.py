@@ -1,4 +1,4 @@
-from validate_email import validate_email_or_fail
+from email_validator import validate_email, EmailNotValidError 
 import re
 import os
 import pandas as pd
@@ -48,24 +48,17 @@ def verify_email_smtp(email):
         if '@' not in email:
             return False, f"Invalid email format: {email}"
         
-        # Perform email validation using py3-validate-email without SMTP check
-        is_valid = validate_email_or_fail(
-            email,
-            check_format=True,
-            check_blacklist=True,
-            check_dns=True,
-            dns_timeout=10,
-            check_smtp=False,  
-        )
-        
+        # Perform email validation using email_validator
+        is_valid = validate_email(email)
+         
         if not is_valid:
             return False, f"Email is not valid: {email}"
         
         return True, "Email is valid"
         
+    except EmailNotValidError as e:
+        return False, f"Email validation error: {e}"
     except Exception as e:
-        if "No valid MX record for domain found" in str(e):
-            return False, f"Email validation error: No valid MX record for domain found."
         return False, f"Unexpected error during email validation: {e}"
 
 # Testing the function
