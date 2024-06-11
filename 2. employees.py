@@ -47,10 +47,7 @@ def verify_email_smtp(email):
             return False, f"Invalid email format: {email}"
         
         # Perform email validation using email_validator
-        is_valid = validate_email(email)
-         
-        if not is_valid:
-            return False, f"Email is not valid: {email}"
+        validate_email(email)   
         
         return True, "Email is valid"
         
