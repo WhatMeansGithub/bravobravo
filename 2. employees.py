@@ -15,8 +15,6 @@ from selenium.webdriver.support import expected_conditions as EC
 import pyperclip
 import datetime
 import concurrent.futures
-import smtplib
-import dns.resolver
 import os
 
 
@@ -342,7 +340,7 @@ search_frame = ctk.CTkFrame(root)
 search_frame.pack(fill='x', pady=5)
 
 search_entry = ctk.CTkEntry(search_frame)
-search_entry.pack(side='left', pady=(0, 5))
+search_entry.pack(side='left')
 
 # Search button
 search_button = ctk.CTkButton(search_frame, text="Search", command=search)
