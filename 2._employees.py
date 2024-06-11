@@ -1,3 +1,5 @@
+from email_validator import validate_email, EmailNotValidError 
+import re
 import pandas as pd
 import customtkinter as ctk
 from tkinter import ttk
@@ -65,6 +67,38 @@ def initialize_driver():
         else:
             print("Using Firefox WebDriver")
             return result[0]
+        
+def verify_email_smtp(email):
+    try:
+        # Basic email format validation
+        if '@' not in email:
+            return False, f"Invalid email format: {email}"
+        
+        # Perform email validation using email_validator
+        is_valid = validate_email(email)
+         
+        if not is_valid:
+            return False, f"Email is not valid: {email}"
+        
+        return True, "Email is valid"
+        
+    except EmailNotValidError as e:
+        return False, f"Email validation error: {e}"
+    except Exception as e:
+        return False, f"Unexpected error during email validation: {e}"
+
+# Testing the function verify_email_smtp
+email = "example@example.com"
+is_valid, info = verify_email_smtp(email)
+print(f"Email {email} validation result: {is_valid}")
+print(f"Additional information: {info}")
+
+# Test with a valid email address
+email = "aiolos129@gmail.com" 
+is_valid, info = verify_email_smtp(email)
+print(f"Email {email} validation result: {is_valid}")
+print(f"Additional information: {info}")
+
 
 # Function to scrape data from the main page
 def scrape_main_page(driver, page_url):                                                                      
@@ -80,18 +114,55 @@ def scrape_main_page(driver, page_url):
     return data
 
 # Function to scrape data from a profile page
-def scrape_profile_page(driver, profile_url):
-    driver.get(profile_url)                                                                                 
-    WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.CLASS_NAME, 'a-mailto')))             
-    email_elem = driver.find_element(By.CLASS_NAME, 'a-mailto')                                             # Finding the e-mail address          
-    email = email_elem.get_attribute('href')
-    if email.startswith("mailto:"):
-        email = email.split(":")[1]                                 # Splits the string each time it encounters a ":", the "[1]" refers to the second item in the list
+def scrape_profile_page(driver, profile):
+    if profile['Name'].startswith('Test User'):
+        email = profile.get('Email')
+        if email:
+            is_valid, info = verify_email_smtp(email)
+            profile['Email Valid'] = is_valid
+            profile['Validation Info'] = info
+            print(f"Test User Profile {profile['Name']} email validation result: {is_valid}, Info: {info}")
+        else:
+            print(f"Test user {profile['Name']} does not have an email.")
     else:
-        email = email_elem.text.strip()
-    phone_elem = driver.find_element(By.XPATH, "//a[starts-with(@href, 'tel:')]")
-    phone = phone_elem.get_attribute('href').split(":")[1]
-    return {'Email': email, 'Phone Number': phone}
+        profile_url = profile['Profile Link']
+        driver.get(profile_url)
+
+        email = None
+        phone = None
+        email_error = None
+        phone_error = None
+
+        try:
+            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'a-mailto')))
+            email_elem = driver.find_element(By.CLASS_NAME, 'a-mailto')
+            email = email_elem.get_attribute('href')
+            if email.startswith("mailto:"):
+                email = email.split(":")[1]
+            else:
+                email = email_elem.text.strip()
+            
+            # Validate the email
+            is_valid, info = verify_email_smtp(email)
+            profile['Email Valid'] = is_valid
+            profile['Validation Info'] = info
+
+            try:
+                phone_elem = driver.find_element(By.XPATH, "//a[starts-with(@href, 'tel:')]")
+                phone = phone_elem.get_attribute('href').split(":")[1]
+            except Exception as e:
+                phone_error = f"Error finding phone number for {profile['Name']}: {e}"
+
+            profile.update({
+                'Email': email if email else email_error,
+                'Phone Number': phone if phone else phone_error
+            })
+            
+        except Exception as e:
+            email_error = f"finding email for {profile['Name']}: {e}"
+            profile['Email'] = email_error
+
+    return profile
 
 # Function to export data to CSV file with a unique name
 def export_to_csv(data):
@@ -107,9 +178,17 @@ def export_to_csv(data):
 def update_gui(page_num=None):
     global profiles_data
     profiles_data = []
+
+    test_profiles = [
+        {'Name': 'Test User1', 'Job Title': 'Tester', 'Profile Link': 'https://example.com/profile1', 'Email': 'invalid-email', 'Phone Number': '1234567890'},
+        {'Name': 'Test User2', 'Job Title': 'Tester', 'Profile Link': 'https://example.com/profile2', 'Email': 'invalid@domain', 'Phone Number': '1234567890'},
+        {'Name': 'Test User3', 'Job Title': 'Tester', 'Profile Link': 'https://example.com/profile3', 'Email': 'valid@example.com', 'Phone Number': '1234567890'}
+    ]
+    profiles_data.extend(test_profiles)
+
     if page_num is None or page_num.strip() == "":
-        page_numbers = range(1, 12)                                                                         # Gets pages 1-11 from the website if there's no input for page numbers
-    else:                                                                                                   # If no page number is input get all pages
+        page_numbers = range(1, 12)  # Gets pages 1-11 from the website if there's no input for page numbers
+    else:
         try:
             page_numbers = [int(page_num)]
         except ValueError:
@@ -118,22 +197,46 @@ def update_gui(page_num=None):
     
     driver = initialize_driver()
     for num in page_numbers:
-        print(f"Fetching data from page {num}")                                                             # print statement to check if the program hangs fetching a certain page
+        print(f"Fetching data from page {num}")  # print statement to check if the program hangs fetching a certain page
         page_url = f"https://www.epunkt.com/team/p{num}"
-        page_data = scrape_main_page(driver, page_url)                                                      # Use a temporary list to store the current page data
+        page_data = scrape_main_page(driver, page_url)  # Use a temporary list to store the current page data
+        
         for profile in page_data:
-            profile.update(scrape_profile_page(driver, profile['Profile Link']))
-        profiles_data += page_data                                                                          # Merge the current page data into the main profiles_data list
+            profile.update(scrape_profile_page(driver, profile))
+        profiles_data += page_data  # Merge the current page data into the main profiles_data list
+
+    for test_profile in test_profiles:  # Ensure test profiles are also validated and added
+        scrape_profile_page(driver, test_profile)
+
     print("Data fetching complete")
     update_treeview()
-    driver.quit
+    driver.quit()
 
 
 # Function to update the Treeview with scraped data
 def update_treeview():
     tree.delete(*tree.get_children())
-    for profile in profiles_data:
-        tree.insert('', 'end', values=(profile['Name'], profile['Job Title'], profile['Profile Link'], profile['Email'], profile['Phone Number']))
+    for i, profile in enumerate(profiles_data):
+        email_text = profile['Email'] if profile['Email'] else 'Email not found'
+        
+        # Add a visual indicator for validated emails
+        if profile.get('Email Valid', False):
+            email_text += " ✔"  # Add a checkmark or any indicator
+        
+        values = (
+            profile['Name'],
+            profile['Job Title'],
+            profile['Profile Link'],
+            email_text,
+            profile['Phone Number'] if profile['Phone Number'] else 'Phone number not found'
+        )
+        
+        tree.insert('', 'end', values=values)
+    
+    tree.tag_configure('highlight', background='darkblue')
+
+    # Configure tag for row highlighting
+    print("Treeview update complete.")
 
 # Function to export selected profiles to CSV file
 def export_selected():
@@ -209,6 +312,50 @@ def copy_all():
     pyperclip.copy(str(profiles_data))
     messagebox.showinfo('Copy Successful', 'All profiles copied to clipboard!')
 
+# Function to search for profiles
+def search():
+    search_text = search_entry.get().strip()
+    if not search_text:
+        messagebox.showwarning('No Search Text', 'Please enter a search keyword.')
+        return
+
+    search_results = []
+    first_match = None
+
+    # Clear existing highlights
+    for item in tree.get_children():
+        current_tags = tree.item(item, 'tags')
+        if 'highlight' in current_tags:
+            new_tags = tuple(tag for tag in current_tags if tag != 'highlight')
+            tree.item(item, tags=new_tags)
+
+    for profile in profiles_data:
+        if re.search(search_text, profile['Name'], re.IGNORECASE) or re.search(search_text, profile['Job Title'], re.IGNORECASE):
+            search_results.append(profile)
+
+    if search_results:
+        for item in tree.get_children():
+            item_values = tree.item(item, 'values')
+            item_tags = list(tree.item(item, 'tags'))  # Get current tags
+            for profile in search_results:
+                profile_values = (
+                    profile['Name'], 
+                    profile['Job Title'], 
+                    profile['Profile Link'], 
+                    profile['Email'] + " ✔" if profile['Email'] else 'Email not found',  # Adjusting for visual indicator
+                    profile['Phone Number'] if profile['Phone Number'] else 'Phone number not found'
+                )
+                if profile_values == item_values:
+                    tree.item(item, tags=('highlight',))
+                    if first_match is None:
+                        first_match = item
+                    break
+        # Auto-scroll to the first match
+        if first_match:
+            tree.see(first_match)
+    else:
+        messagebox.showinfo('No Results', 'No profiles found matching the search keyword.')
+
 # Function to sort the Treeview column
 def sort_column(col):
     global profiles_data
@@ -252,6 +399,17 @@ page_number_label.pack(pady=5)
 page_number_entry = ctk.CTkEntry(root, placeholder_text="Input page number...")
 page_number_entry.pack(pady=5)
 
+# Search bar
+search_frame = ctk.CTkFrame(root)
+search_frame.pack(fill='x', pady=5)
+
+search_entry = ctk.CTkEntry(search_frame)
+search_entry.pack(side='left')
+
+# Search button
+search_button = ctk.CTkButton(search_frame, text="Search", command=search)
+search_button.pack(side= 'left')
+
 # Create Treeview to display scraped data using ttk
 columns = ('Name', 'Job Title', 'Profile Link', 'Email', 'Phone Number')
 tree = ttk.Treeview(root, columns=columns, show='headings', style="Treeview")
@@ -260,6 +418,9 @@ sort_orders = {col: False for col in columns}                                   
 for col in columns:
     tree.heading(col, text=col, command=lambda _col=col: sort_column(_col))
 tree.pack(fill='both', expand=True, pady=5)
+
+# Define a tag for highlighting search results
+tree.tag_configure('highlight', background='darkblue')
 
 # Container frame for the buttons
 button_frame = ctk.CTkFrame(root)
