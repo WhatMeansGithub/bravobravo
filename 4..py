@@ -334,19 +334,13 @@ def back():
 
 # Main application window
 root = customtkinter.CTk()
-root.title("Vibe Box")
+root.title("Music Application")
 root.geometry("1200x800+400+150")                                 # Setting the fixed size and position of the window
 
-window_width = root.winfo_width()
-window_height = root.winfo_height()
 
-img=ImageTk.PhotoImage(Image.open("../bravobravo/music-note-red.jpg"))
-img = customtkinter.CTkLabel(root, image=img)
-img.pack(fill="both", expand=True)
-img.pack()
-
-
-
+img=ImageTk.PhotoImage(Image.open("yt.jpg"))
+im1=customtkinter.CTkLabel(root,image=img)
+im1.pack()
 
 Frame=customtkinter.CTkFrame(master=root , width=500, height=600,border_color="#CD3131",border_width=0)
 Frame.place(relx=0.5, rely=0.5, anchor=CENTER)
