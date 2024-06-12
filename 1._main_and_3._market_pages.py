@@ -240,7 +240,7 @@ def show_market_buttons():                                                      
     # Create a back button to return to the main page
     back_button = ctk.CTkButton(button_frame, text="Main Menu", width=290, height=100, anchor='right', font=('Helvetica', 45, 'bold'), fg_color='#294f73', hover_color='#1d8ab5')
     back_button.pack(padx=20, pady=(0, 20))
-    back_button.configure(command=lambda: call_main_page_buttons()())
+    back_button.configure(command=lambda: call_main_page_buttons())
 
 def set_current_webscraping_function(function):                                     # Function to set the currently active webscraped table
     global current_webscraping_function                                             #  accessing the global variable 'current_webscraping_function' so we can use it
