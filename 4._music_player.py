@@ -151,29 +151,29 @@ def open_music_player():
 
 
     dropdown_button = customtkinter.CTkButton(master=music_player, text="Select Music", command=open_dropdown,fg_color="#750000",hover_color="firebrick4")
-    dropdown_button.place(relx=0.01, rely=0.01, anchor=tk.NW)
+    dropdown_button.place(relx=0.5, rely=0.88, anchor=tk.NW)
 
-    back_button = customtkinter.CTkButton(master=music_player, text="Back", command=back_to_main,fg_color="#750000",hover_color="firebrick4")
-    back_button.place(relx=0.01, rely=0.05, anchor=tk.NW)
+    back_button = customtkinter.CTkButton(master=music_player, text="B A C K", command=back_to_main,fg_color="#750000",hover_color="firebrick4")
+    back_button.place(relx=0.37, rely=0.88, anchor=tk.NW)
    
 
     play_button = customtkinter.CTkButton(master=music_player, text='Play', command=play_music, width=5,fg_color="#750000",hover_color="firebrick4")
-    play_button.place(relx=0.5, rely=0.7, anchor=tk.CENTER)
+    play_button.place(relx=0.53, rely=0.7, anchor=tk.CENTER)
     
     pause_button = customtkinter.CTkButton(master=music_player, text='Pause', command=pause_music, width=5,fg_color="#750000",hover_color="firebrick4")
-    pause_button.place(relx=0.4, rely=0.7, anchor=tk.CENTER)
+    pause_button.place(relx=0.46, rely=0.7, anchor=tk.CENTER)
     
     skip_b = customtkinter.CTkButton(master=music_player, text='<', command=play_previous_music, width=5,fg_color="#750000",hover_color="firebrick4")
-    skip_b.place(relx=0.3, rely=0.7, anchor=tk.CENTER)
+    skip_b.place(relx=0.38, rely=0.7, anchor=tk.CENTER)
     
     skip_f = customtkinter.CTkButton(master=music_player, text='>', command=play_next_music, width=5,fg_color="#750000",hover_color="firebrick4")
     skip_f.place(relx=0.6, rely=0.7, anchor=tk.CENTER)
     
-    slider = customtkinter.CTkSlider(master=music_player, from_=0, to=1, command=volume, width=210,fg_color="white",bg_color="firebrick4",button_color="firebrick4",border_width=0)
-    slider.place(relx=0.5, rely=0.78, anchor=tk.CENTER)
+    slider = customtkinter.CTkSlider(master=music_player, from_=0, to=1, command=volume, width=300,fg_color="white",bg_color="firebrick4",button_color="firebrick4",border_width=0,progress_color="firebrick4",button_hover_color="firebrick4")
+    slider.place(relx=0.49, rely=0.78, anchor=tk.CENTER)
 
     pbar = customtkinter.CTkProgressBar(master=music_player, orientation='horizontal', width=300,fg_color="white", progress_color="firebrick4")
-    pbar.place(relx=.5, rely=.85, anchor=tk.CENTER)
+    pbar.place(relx=0.49, rely=.85, anchor=tk.CENTER)
 
 
 
