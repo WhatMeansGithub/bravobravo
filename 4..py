@@ -148,13 +148,9 @@ def open_music_player():
 
         song_listbox.bind("<<ListboxSelect>>", on_song_selected)
 
-
-
-    dropdown_button = customtkinter.CTkButton(master=music_player, text="Select Music", command=open_dropdown,fg_color="#750000",hover_color="firebrick4")
+    dropdown_button = customtkinter.CTkButton(master=music_player, text="Select Music", command=open_dropdown)
     dropdown_button.place(relx=0.01, rely=0.01, anchor=tk.NW)
 
-    back_button = customtkinter.CTkButton(master=music_player, text="Back", command=back_to_main,fg_color="#750000",hover_color="firebrick4")
-    back_button.place(relx=0.01, rely=0.05, anchor=tk.NW)
    
 
     play_button = customtkinter.CTkButton(master=music_player, text='Play', command=play_music, width=5,fg_color="#750000",hover_color="firebrick4")
@@ -176,7 +172,8 @@ def open_music_player():
     pbar.place(relx=.5, rely=.85, anchor=tk.CENTER)
 
 
-
+    back_button = customtkinter.CTkButton(Frame, text="Back", command=back,fg_color="#750000",hover_color="firebrick4",font=("Arial", 15, "bold"))
+    back_button.grid(row=7, column=0, columnspan=2, pady=10)
 
 
 
@@ -199,10 +196,7 @@ def open_music_player():
     lbox.bind('<Double-1>',  song_listbox)
 
 
-def back_to_main():
-    root.deiconify
-    music_player.destroy()
-    #subprocess.Popen(['/usr/bin/python3', 'musicplayer.py'])
+
 def back():
     root.destroy()
     subprocess.Popen(['/usr/bin/python3', 'mainpage.py'])
@@ -340,19 +334,13 @@ def back():
 
 # Main application window
 root = customtkinter.CTk()
-root.title("Vibe Box")
+root.title("Music Application")
 root.geometry("1200x800+400+150")                                 # Setting the fixed size and position of the window
 
-window_width = root.winfo_width()
-window_height = root.winfo_height()
 
-img=ImageTk.PhotoImage(Image.open("../bravobravo/music-note-red.jpg"))
-img = customtkinter.CTkLabel(root, image=img)
-img.pack(fill="both", expand=True)
-img.pack()
-
-
-
+img=ImageTk.PhotoImage(Image.open("yt.jpg"))
+im1=customtkinter.CTkLabel(root,image=img)
+im1.pack()
 
 Frame=customtkinter.CTkFrame(master=root , width=500, height=600,border_color="#CD3131",border_width=0)
 Frame.place(relx=0.5, rely=0.5, anchor=CENTER)
