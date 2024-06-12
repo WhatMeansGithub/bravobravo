@@ -363,6 +363,10 @@ def sort_column(col):
     sort_orders[col] = not sort_orders[col]
     update_treeview()
 
+# Function to go back to main menu
+def back():
+    root.destroy()
+
 # Initialize customtkinter GUI
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("green")
@@ -451,6 +455,10 @@ copy_all_button.pack(side="left", padx=5)
 
 # Button to delete selected data
 delete_selected_button = ctk.CTkButton(button_frame, text="Delete Selected", command=delete_selected, **button_style)
+delete_selected_button.pack(side="left", padx=5)
+
+# Button to go back to main menu
+delete_selected_button = ctk.CTkButton(button_frame, text="Back to Main Menu", command=back, **button_style)
 delete_selected_button.pack(side="left", padx=5)
 
 # Run the GUI
