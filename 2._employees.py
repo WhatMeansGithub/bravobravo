@@ -378,6 +378,9 @@ style = ttk.Style()
 style.theme_use("clam")                                                                                        # set the theme to use for ttk
 root.geometry("1200x800+400+150")                                                                              # Setting the fixed size and position of the window
 
+# Use the native OS window decorations
+root.overrideredirect(False)
+
 
 # Customize the Treeview
 style.configure("Treeview",
