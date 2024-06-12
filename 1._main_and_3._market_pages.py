@@ -289,6 +289,7 @@ root.wm_attributes('-alpha', 1)                                                 
 root.title("The CEO Program")                                                       # Set the main page window title
 root.geometry("1200x800+400+150")                                                   # Set the main page window size and position
 root.resizable(False, False)                                                        # Disable window resizing
+root.focus_force()                                                                  # Bring the window to the front and focus it
 
 background_image = 'program files/main_page_background.jpg'                         # Set the background image of the main page
 img = Image.open(background_image)                                                  # Open the background image

@@ -15,6 +15,8 @@ import pyperclip
 import datetime
 import os
 import threading
+import subprocess
+
 
 # Function to initialize WebDriver
 def initialize_driver():
@@ -366,7 +368,8 @@ def sort_column(col):
 # Function to go back to main menu
 def back():
     root.destroy()
-
+    subprocess.run(["python3", "1._main_and_3._market_pages.py"])
+    
 # Initialize customtkinter GUI
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("green")
@@ -377,6 +380,7 @@ root.title("Scraped Profiles")
 style = ttk.Style()
 style.theme_use("clam")                                                                                        # set the theme to use for ttk
 root.geometry("1200x800+400+150")                                                                              # Setting the fixed size and position of the window
+root.focus_force()                                                                                             # Bring the window to the front and focus it
 
 # Use the native OS window decorations
 root.overrideredirect(False)
