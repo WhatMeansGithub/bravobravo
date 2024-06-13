@@ -1,13 +1,13 @@
-from tkinter import messagebox
-from PIL import Image, ImageTk
-from bs4 import BeautifulSoup
-import customtkinter as ctk
-import ttkbootstrap as ttk
-import pandas as pd
-import requests
-import json
-import subprocess
-import os
+from tkinter import messagebox                                                      # Allows us to show pop-up messages
+from PIL import Image, ImageTk                                                      # Allows us to work with images
+from bs4 import BeautifulSoup                                                       # Allows us to scrape data from websites
+import customtkinter as ctk                                                         # Allows us to customise the tkinter widgets more
+import ttkbootstrap as ttk                                                          # Allows us to customise the tkinter widgets more
+import subprocess                                                                   # Allows us to open other python files
+import pandas as pd                                                                 # Allows us to work with the data in tables
+import requests                                                                     # Allows us to send HTTP requests (like opening a website)
+import json                                                                         # Allows us to work with JSON files
+import os                                                                           # Allows us to work with the operating system (like creating folders)
 
 # MARKET CODE =============================================================================================================
 
@@ -246,8 +246,6 @@ def set_current_webscraping_function(function):                                 
     global current_webscraping_function                                             #  accessing the global variable 'current_webscraping_function' so we can use it
     current_webscraping_function = function                                         #  funcion is set to the currently active webscraped table
 
-
-
 # MAIN PAGE CODE ==========================================================================================================
 
 def open_employee_page():                                                           # Function to open the employee page
@@ -299,7 +297,7 @@ img_label.place(x=0, y=0, relwidth=1, relheight=1)                              
 
 button_frame = ttk.Frame(root)                                                      # Create a frame for the buttons
 button_frame.place(relx=0, rely=0.5, anchor='w')                                    # Place the frame in the window
-                                                             # Function to style the Treeview widget in the market page
+
 treeview_frame = ttk.Frame(root)                                                    # Create a frame for the Treeview widget in the market page
 treeview_frame.pack(padx=(300, 7), pady=7, fill='both', expand=True)                # Place the frame in the window
 tree = ttk.Treeview(treeview_frame, show='headings', style="Treeview")              # Create the Treeview widget
